@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "875187969783",
+    "project_id": "scouting-demacia",
+    "storage_bucket": "scouting-demacia.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:875187969783:android:6b223ba745debdf5573df2",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "875187969783-elv9iemppmb1lmvnmojq88oqog0bgobv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlbIRX2qI5Dgs_XkoD00Kn-I-0D5S7Khc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "875187969783-elv9iemppmb1lmvnmojq88oqog0bgobv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:875187969783:android:334776ed2d337a06573df2",
+        "android_client_info": {
+          "package_name": "com.scouting.demacia"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "875187969783-elv9iemppmb1lmvnmojq88oqog0bgobv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlbIRX2qI5Dgs_XkoD00Kn-I-0D5S7Khc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "875187969783-elv9iemppmb1lmvnmojq88oqog0bgobv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
