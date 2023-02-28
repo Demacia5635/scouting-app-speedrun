@@ -20,6 +20,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +29,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     EditText firstname;
     EditText lastname;
     Button login;
+    String thingsTosave = "";
     ArrayList<String> paths = new ArrayList<String>();
     boolean failed = false;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -44,7 +47,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View view) {
-
+        for (int i = 0; i < 6; i++) {
+            writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString());
+        }
     }
     private void writefielddata(String id,String firstname,String lastname){
         db.collection("seasons/2023/competitions/ISDE2")
@@ -55,21 +60,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if(task.isSuccessful()){
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                List<String> group = (List<String>) document.get(id);
-                                if(group.get(1) == lastname){
-                                    paths.add(group.get(4)+"data:/end");
-                                    writeToInternal("datapaths.txt",group.get(4));
+                                String[] group = (String[]) document.get(id);
+                                if(group[2] == lastname){
+                                    paths.add(group[3]+"data:/end/");
+                                    writeToInternal("datapaths.txt",group[3]);
 
                                 }
                             }
+                        }else {
+                            Toast.makeText(LoginActivity.this, "no such user exsits", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
         if(!failed){
             Intent intent = new Intent(this,AutonomousActivity.class);
-            String[] pathsArray = new String[paths.size()];
-            paths.toArray(pathsArray);
-            intent.putExtra("paths",pathsArray);
+            intent.putExtra("paths",paths);
             intent.putExtra("index",0);
             startActivity(intent);
         }
@@ -77,11 +82,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     }
     public void writeToInternal(String filename,String content){
-        File path = getApplicationContext().getFilesDir();
         try {
-            FileOutputStream writer = new FileOutputStream(new File(path,filename));
-            content = content+"data:/end";
-            writer.write(content.getBytes());
+            FileOutputStream fOut = openFileOutput("file name",Context.MODE_PRIVATE);
+            OutputStreamWriter writer =  new OutputStreamWriter(fOut);
+            thingsTosave += content+"data:/endauto//endtele//endgame/";
+            fOut.write(thingsTosave.getBytes());
+            fOut.close();
         }catch (Exception e){
             failed = true;
             Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();

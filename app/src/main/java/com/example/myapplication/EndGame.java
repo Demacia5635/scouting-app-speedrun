@@ -1,10 +1,16 @@
 package com.example.myapplication;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.Paint;
+
+
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -25,8 +31,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Map;
+import android.os.Bundle;
 
-public class TeleopActivity extends AppCompatActivity implements View.OnClickListener {
+public class EndGame extends AppCompatActivity implements View.OnClickListener {
     LinearLayout linearLayout;
     ArrayList<String> numbernames;
     ArrayList<String> slidernames;
@@ -43,11 +50,12 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String databegin = "data:";
     String dataEnd = "/endauto/";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_teleop);
-        linearLayout = findViewById(R.id.linearlayoutteled);
+        setContentView(R.layout.activity_end_game);
+        linearLayout = findViewById(R.id.linearlayoutendgame);
         addViewsToLinearLayout();
         getpreviousdata();
         Intent intent = getIntent();
@@ -55,16 +63,23 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
             paths.add(path);
         }
         index = intent.getExtras().getInt("index");
-        TextView match = findViewById(R.id.qualtele);
+        TextView match = findViewById(R.id.qualendgame);
         String qualssubpath = paths.get(index).substring(paths.get(index).indexOf("ISDE2"),paths.get(index).length());
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("data:"));
         match.setText(qualssubpath);
-        prev = findViewById(R.id.prevauto);
-
+        prev = findViewById(R.id.prevtele);
+        if(index == 0){
+            prev.setVisibility(View.INVISIBLE);
+        }
+        next = findViewById(R.id.nextauto);
+        if(index == paths.size()-1){
+            next.setText("submit");
+        }
         prev.setOnClickListener(this);
         next.setOnClickListener(this);
+
     }
     private void addViewsToLinearLayout(){
         DocumentReference docRef = db.collection("seasons/2023/data-params").document("autonomous");
@@ -196,40 +211,29 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     public void onClick(View view) {
-        String datastring="";
-
-        for (int i = 0; i < numbernames.size(); i++) {
-            datastring+=numbernames.get(i)+":";
-            datastring+=numberInputs.get(i).getValue() + "/de";
+        linearLayout = findViewById(R.id.linearlayout);
+        addViewsToLinearLayout();
+        getpreviousdata();
+        Intent intent = getIntent();
+        for(String path : intent.getExtras().getStringArrayList("paths")){
+            paths.add(path);
         }
-        for (int i = 0; i < checkboxesnames.size(); i++) {
-            datastring+=checkboxesnames.get(i)+":";
-            datastring+=checkBoxes.get(i).isChecked()+ "/de";
+        index = intent.getExtras().getInt("index");
+        TextView match = findViewById(R.id.qualauto);
+        String qualssubpath = paths.get(index).substring(paths.get(index).indexOf("ISDE2"),paths.get(index).length());
+        qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
+        qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
+        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("data:"));
+        match.setText(qualssubpath);
+        prev = findViewById(R.id.prevendgame);
+        if(index == 0){
+            prev.setVisibility(View.INVISIBLE);
         }
-        for (int i = 0; i < edittextsnames.size(); i++) {
-            datastring+=edittextsnames.get(i)+":";
-            datastring+=editTexts.get(i).getText().toString()+ "/de";
+        next = findViewById(R.id.nextteleop);
+        if(index == paths.size()-1){
+            next.setVisibility(View.INVISIBLE);
         }
-        for (int i = 0; i < slidernames.size(); i++) {
-            datastring+=slidernames.get(i)+":";
-            datastring+=sliders.get(i).getValue()+ "/de";
-        }
-        String data = databegin;
-        int dataindex = paths.get(index).indexOf(data)+data.length();
-        String pathwithdata = paths.get(index).substring(0,dataindex)+datastring+paths.get(index).substring(paths.get(index).indexOf(dataEnd));
-        paths.set(index,pathwithdata);
-        if(view == next){
-            index++;
-            Intent intent = new Intent(this,EndGame.class);
-            intent.putExtra("paths",paths);
-            intent.putExtra("index",index);
-            startActivity(intent);
-        } else if (view==prev) {
-            index--;
-            Intent intent = new Intent(this,TeleopActivity.class);
-            intent.putExtra("paths",paths);
-            intent.putExtra("index",index);
-            startActivity(intent);
-        }
+        prev.setOnClickListener(this);
+        next.setOnClickListener(this);
     }
 }
