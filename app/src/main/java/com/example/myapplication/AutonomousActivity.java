@@ -11,6 +11,7 @@ import android.graphics.Paint;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -19,10 +20,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.TextView;
-
+import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.slider.Slider;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,14 +36,14 @@ import java.util.Map;
 
 public class AutonomousActivity extends AppCompatActivity implements View.OnClickListener {
     LinearLayout linearLayout;
-    ArrayList<String> numbernames;
-    ArrayList<String> slidernames;
-    ArrayList<String> edittextsnames;
-    ArrayList<String> checkboxesnames;
-    ArrayList<NumberPicker> numberInputs;
-    ArrayList<Slider> sliders;
-    ArrayList<EditText> editTexts;
-    ArrayList<CheckBox> checkBoxes;
+    ArrayList<String> numbernames = new ArrayList<>();
+    ArrayList<String> slidernames = new ArrayList<>();
+    ArrayList<String> edittextsnames = new ArrayList<>();
+    ArrayList<String> checkboxesnames = new ArrayList<>();
+    ArrayList<NumberPicker> numberInputs = new ArrayList<>();
+    ArrayList<Slider> sliders = new ArrayList<>();
+    ArrayList<EditText> editTexts = new ArrayList<>();
+    ArrayList<CheckBox> checkBoxes = new ArrayList<>();
     ArrayList<String> paths = new ArrayList<String>();
     int index;
     Button prev;
@@ -47,20 +51,27 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String databegin = "data:";
     String dataEnd = "/endauto/";
+
+    private FirebaseAuth auth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_autonomous);
         linearLayout = findViewById(R.id.linearlayout);
         addViewsToLinearLayout();
-        getpreviousdata();
+//        getpreviousdata();
         Intent intent = getIntent();
        for(String path : intent.getExtras().getStringArrayList("paths")){
            paths.add(path);
        }
        index = intent.getExtras().getInt("index");
+        Log.e("INDEX", paths.get(index));
        TextView match = findViewById(R.id.qualauto);
-       String qualssubpath = paths.get(index).substring(paths.get(index).indexOf("ISDE2"),paths.get(index).length());
+       String qualssubpath = paths.get(index).
+               substring(paths.
+                       get(index).
+                       indexOf("ISDE2"),
+                       paths.get(index).length());
        qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("data:"));
@@ -75,10 +86,32 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
        }
        prev.setOnClickListener(this);
        next.setOnClickListener(this);
+        auth = FirebaseAuth.getInstance();
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = auth.getCurrentUser();
+        auth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d("FB", "signInAnonymously:success");
+                            FirebaseUser user = auth.getCurrentUser();
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w("FB", "signInAnonymously:failure", task.getException());
+                            Toast.makeText(AutonomousActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
     private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2023/data-params").document("autonomous");
+        DocumentReference docRef = db.collection("seasons/2022/data-params").document("autonomous");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -201,14 +234,13 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
         String pathwithdata = paths.get(index).substring(0,dataindex)+datastring+paths.get(index).substring(paths.get(index).indexOf(dataEnd));
         paths.set(index,pathwithdata);
         if(view == next){
-            index++;
-            Intent intent = new Intent(this,EndGame.class);
+            Intent intent = new Intent(AutonomousActivity.this,TeleopActivity.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
             startActivity(intent);
         } else if (view==prev) {
             index--;
-            Intent intent = new Intent(this,TeleopActivity.class);
+            Intent intent = new Intent(AutonomousActivity.this,EndGame.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
             startActivity(intent);

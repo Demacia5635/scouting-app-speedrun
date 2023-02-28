@@ -13,6 +13,7 @@ import android.graphics.Paint;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,6 +26,9 @@ import android.widget.TextView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.slider.Slider;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,24 +36,28 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.Map;
 import android.os.Bundle;
+import android.widget.Toast;
 
 public class EndGame extends AppCompatActivity implements View.OnClickListener {
     LinearLayout linearLayout;
-    ArrayList<String> numbernames;
-    ArrayList<String> slidernames;
-    ArrayList<String> edittextsnames;
-    ArrayList<String> checkboxesnames;
-    ArrayList<NumberPicker> numberInputs;
-    ArrayList<Slider> sliders;
-    ArrayList<EditText> editTexts;
-    ArrayList<CheckBox> checkBoxes;
+    ArrayList<String> numbernames = new ArrayList<>();
+    ArrayList<String> slidernames = new ArrayList<>();
+    ArrayList<String> edittextsnames = new ArrayList<>();
+    ArrayList<String> checkboxesnames = new ArrayList<>();
+    ArrayList<NumberPicker> numberInputs = new ArrayList<>();
+    ArrayList<Slider> sliders = new ArrayList<>();
+    ArrayList<EditText> editTexts = new ArrayList<>();
+    ArrayList<CheckBox> checkBoxes = new ArrayList<>();
     ArrayList<String> paths = new ArrayList<String>();
     int index;
     Button prev;
     Button next;
+    Boolean isdone = false;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
-    String databegin = "data:";
-    String dataEnd = "/endauto/";
+    String databegin = "/endtele/";
+    String dataEnd = "/endgame/";
+
+    private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +65,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         setContentView(R.layout.activity_end_game);
         linearLayout = findViewById(R.id.linearlayoutendgame);
         addViewsToLinearLayout();
-        getpreviousdata();
+//        getpreviousdata();
         Intent intent = getIntent();
         for(String path : intent.getExtras().getStringArrayList("paths")){
             paths.add(path);
@@ -70,19 +78,39 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("data:"));
         match.setText(qualssubpath);
         prev = findViewById(R.id.prevtele);
-        if(index == 0){
-            prev.setVisibility(View.INVISIBLE);
-        }
         next = findViewById(R.id.nextauto);
         if(index == paths.size()-1){
             next.setText("submit");
+            isdone = true;
         }
         prev.setOnClickListener(this);
         next.setOnClickListener(this);
+        auth = FirebaseAuth.getInstance();
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = auth.getCurrentUser();
+        auth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d("FB", "signInAnonymously:success");
+                            FirebaseUser user = auth.getCurrentUser();
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w("FB", "signInAnonymously:failure", task.getException());
+                            Toast.makeText(EndGame.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
     private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2023/data-params").document("autonomous");
+        DocumentReference docRef = db.collection("seasons/2022/data-params").document("endgame");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -211,29 +239,43 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        linearLayout = findViewById(R.id.linearlayout);
-        addViewsToLinearLayout();
-        getpreviousdata();
-        Intent intent = getIntent();
-        for(String path : intent.getExtras().getStringArrayList("paths")){
-            paths.add(path);
+        String datastring="";
+
+        for (int i = 0; i < numbernames.size(); i++) {
+            datastring+=numbernames.get(i)+":";
+            datastring+=numberInputs.get(i).getValue() + "/de";
         }
-        index = intent.getExtras().getInt("index");
-        TextView match = findViewById(R.id.qualauto);
-        String qualssubpath = paths.get(index).substring(paths.get(index).indexOf("ISDE2"),paths.get(index).length());
-        qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
-        qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
-        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("data:"));
-        match.setText(qualssubpath);
-        prev = findViewById(R.id.prevendgame);
-        if(index == 0){
-            prev.setVisibility(View.INVISIBLE);
+        for (int i = 0; i < checkboxesnames.size(); i++) {
+            datastring+=checkboxesnames.get(i)+":";
+            datastring+=checkBoxes.get(i).isChecked()+ "/de";
         }
-        next = findViewById(R.id.nextteleop);
-        if(index == paths.size()-1){
-            next.setVisibility(View.INVISIBLE);
+        for (int i = 0; i < edittextsnames.size(); i++) {
+            datastring+=edittextsnames.get(i)+":";
+            datastring+=editTexts.get(i).getText().toString()+ "/de";
         }
-        prev.setOnClickListener(this);
-        next.setOnClickListener(this);
+        for (int i = 0; i < slidernames.size(); i++) {
+            datastring+=slidernames.get(i)+":";
+            datastring+=sliders.get(i).getValue()+ "/de";
+        }
+        String data = databegin;
+        int dataindex = paths.get(index).indexOf(data)+data.length();
+        String pathwithdata = paths.get(index).substring(0,dataindex)+datastring+paths.get(index).substring(paths.get(index).indexOf(dataEnd));
+        paths.set(index,pathwithdata);
+        if(view == next){
+            if(!isdone){
+            index++;
+            Intent intent = new Intent(this,AutonomousActivity.class);
+            intent.putExtra("paths",paths);
+            intent.putExtra("index",index);
+            startActivity(intent);}else {
+                startService(new Intent(this,TryToUpload.class));
+            }
+        } else if (view==prev) {
+            Intent intent = new Intent(this,TeleopActivity.class);
+            intent.putExtra("paths",paths);
+            intent.putExtra("index",index);
+            startActivity(intent);
+        }
+
     }
 }
