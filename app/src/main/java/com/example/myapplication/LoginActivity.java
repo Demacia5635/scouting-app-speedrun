@@ -30,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -70,12 +71,32 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             String parsepath ="";
             String endgame = "/endgame/";
             while (data.length()>0){
-
                 parsepath = data.substring(0,data.indexOf(endgame)+endgame.length());
                 paths.add(parsepath);
                 data = data.substring(data.indexOf(endgame)+endgame.length());
             }
             Intent intent = new Intent(LoginActivity.this,AutonomousActivity.class);
+            ArrayList<Integer> sorting = new ArrayList<Integer>();
+            ArrayList<String> PathToAddbefore=new ArrayList<>();
+            ArrayList<String> PathToAddAfter=new ArrayList<String>();
+            for (String path:paths) {
+                Log.e("value before",path);
+                String qualssubpath = path;
+                String quals = "Quals";
+                qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
+                qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
+                Log.e("trin",qualssubpath);
+                PathToAddbefore.add(path.substring(0,path.indexOf(qualssubpath)));
+                PathToAddAfter.add(path.substring(path.indexOf(qualssubpath)+qualssubpath.length()));
+                qualssubpath = qualssubpath.substring(qualssubpath.indexOf("Qual")+quals.length()-1);
+                sorting.add(Integer.parseInt(qualssubpath));
+                qualssubpath = path;
+            }
+            Collections.sort(sorting);
+            for (int i = 0; i < sorting.size(); i++) {
+                Log.e("value",PathToAddbefore.get(i)+"Qual"+sorting.get(i)+PathToAddAfter.get(i));
+                paths.set(i,PathToAddbefore.get(i)+"Qual"+sorting.get(i)+PathToAddAfter.get(i));
+            }
             intent.putExtra("paths",paths);
             intent.putExtra("index",0);
             startActivity(intent);
@@ -106,6 +127,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View view) {
+        Toast.makeText(this, "your click has been registered please wait while we check your login info", Toast.LENGTH_SHORT).show();
         for (int i = 0; i < 6; i++) {
             writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString());
         }
@@ -121,16 +143,40 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 ArrayList<String> group = (ArrayList<String>) document.get(id);
                                 if(group.get(2).equals(lastname)){
-                                    Log.e("read: ",document.getString(id+"-path"));
-                                    paths.add(document.getString(id+"-path")+"data:/endauto//endtele//endgame/");
-                                    writeToInternal("datapaths.txt",document.getString(id+"-path"));
+                                    Log.e("read: ",document.getReference().getPath()+"/"+document.getString(id+"-path"));
+                                    paths.add(document.getReference().getPath()+"/"+document.getString(id+"-path")+"data:/endauto//endtele//endgame/");
+
+                                    writeToInternal("datapaths.txt",document.getReference().getPath()+"/"+document.getString(id+"-path"));
 
                                 }
-                                Intent intent = new Intent(LoginActivity.this,AutonomousActivity.class);
-                                intent.putExtra("paths",paths);
-                                intent.putExtra("index",0);
-                                startActivity(intent);
+
                             }
+                            Intent intent = new Intent(LoginActivity.this,AutonomousActivity.class);
+                            ArrayList<Integer> sorting = new ArrayList<Integer>();
+                            ArrayList<String> PathToAddbefore=new ArrayList<>();
+                            ArrayList<String> PathToAddAfter=new ArrayList<String>();
+                            for (String path:paths) {
+                                Log.e("value before",path);
+                                String qualssubpath = path;
+                                String quals = "Quals";
+                                qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
+                                qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
+                                Log.e("trin",qualssubpath);
+                                PathToAddbefore.add(path.substring(0,path.indexOf(qualssubpath)));
+                                PathToAddAfter.add(path.substring(path.indexOf(qualssubpath)+qualssubpath.length()));
+                                qualssubpath = qualssubpath.substring(qualssubpath.indexOf("Qual")+quals.length()-1);
+                                sorting.add(Integer.parseInt(qualssubpath));
+                                qualssubpath = path;
+                            }
+                            Collections.sort(sorting);
+                            for (int i = 0; i < sorting.size(); i++) {
+                                Log.e("value",PathToAddbefore.get(i)+"Qual"+sorting.get(i)+PathToAddAfter.get(i));
+                                paths.set(i,PathToAddbefore.get(i)+"Qual"+sorting.get(i)+PathToAddAfter.get(i));
+                            }
+                            intent.putExtra("paths",paths);
+                            intent.putExtra("index",0);
+
+                            startActivity(intent);
                         }else {
                             Log.e("ERROR:", task.getException().toString());
                             Toast.makeText(LoginActivity.this, "no such user exsits", Toast.LENGTH_SHORT).show();

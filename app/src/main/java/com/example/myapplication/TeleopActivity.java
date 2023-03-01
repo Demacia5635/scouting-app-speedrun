@@ -71,7 +71,9 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
         String quals = "Quals";
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-        match.setText(qualssubpath);
+        String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
+        String mode = "teleop";
+        match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
         prev = findViewById(R.id.prevauto);
         next = findViewById(R.id.nextendgame);
         prev.setOnClickListener(this);
@@ -124,7 +126,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 TextView t1 = new TextView(getApplicationContext());
                 t1.setText(map.get("displayName").toString());
-                t1.setTextColor(Color.parseColor(map.get("color")+""));
+                t1.setTextColor(Color.parseColor("#FFFFFF"));
                 SeekBar slider = new SeekBar(getApplicationContext());
                 slider.setThumbTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                 slider.setProgressTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
@@ -136,6 +138,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 slider.setLayoutParams(params2);
                 TextView slidervalue = new TextView(getApplicationContext());
+                slidervalue.setTextColor(Color.parseColor(map.get("color")+""));
                 SeekBar.OnSeekBarChangeListener abc = new SeekBar.OnSeekBarChangeListener() {
 
                     @Override

@@ -59,6 +59,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
     Boolean finisheddata = false;
     String dataEnd = "/endauto/";
 
+
     private FirebaseAuth auth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,9 +68,9 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
         linearLayout = findViewById(R.id.linearlayout);
         addViewsToLinearLayout();
         Intent intent = getIntent();
+
        for(String path : intent.getExtras().getStringArrayList("paths")){
            paths.add(path);
-           isloogedout = true;
        }
 
         index = intent.getExtras().getInt("index");
@@ -79,10 +80,13 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
        String quals = "Quals";
        qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-       match.setText(qualssubpath);
+       String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
+       String mode = "autonomous";
+       match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
        prev = findViewById(R.id.prevendgame);
        if(index == 0){
            prev.setText("Logout");
+           isloogedout = true;
        }
        next = findViewById(R.id.nextteleop);
        prev.setOnClickListener(this);
@@ -147,6 +151,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                  LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                  slider.setLayoutParams(params2);
                  TextView slidervalue = new TextView(getApplicationContext());
+                 slidervalue.setTextColor(Color.parseColor(map.get("color")+""));
                  SeekBar.OnSeekBarChangeListener abc = new SeekBar.OnSeekBarChangeListener() {
 
                      @Override
@@ -310,7 +315,10 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
             if(data.contains(numbernames.get(i))){
                 String temp = data.substring(data.indexOf(numbernames.get(i))+numbernames.get(i).length()+colondash.length());
                 Log.e("datavalue",temp);
-                numberInputs.get(i).setValue(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                try {
+                    numberInputs.get(i).setValue(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+
+                }catch (Exception e){}
             }
         }
         for (int i = 0; i < checkboxesnames.size(); i++) {
@@ -329,7 +337,9 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
             if(data.contains(slidernames.get(i))){
                 String temp = data.substring(data.indexOf(slidernames.get(i))+slidernames.get(i).length()+colondash.length());
                 sliders.get(i).setText(temp.substring(0,temp.indexOf("/de")));
-                seekBars.get(i).setProgress(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                try {
+                    seekBars.get(i).setProgress(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                }catch (Exception e){}
             }
         }
         }
