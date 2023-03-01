@@ -3,6 +3,7 @@ package com.example.myapplication;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -28,6 +29,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -97,7 +99,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 });
     }
     private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2022/data-params").document("teleop");
+        DocumentReference docRef = db.collection("seasons/2023/data-params").document("teleop");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -125,6 +127,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 slider.setValueFrom((Float) map.get("min"));
                 slider.setValueTo((Float) map.get("max"));
                 t1.setLayoutParams(params);
+                t1.setTextColor(Color.parseColor(map.get("color")+""));
                 LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(100, ViewGroup.LayoutParams.WRAP_CONTENT);
                 slider.setLayoutParams(params2);
                 linearLayout.addView(t1);
@@ -142,6 +145,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 TextView t2 = new TextView(getApplicationContext());
                 t2.setText(map.get("displayName").toString());
                 t2.setLayoutParams(params3);
+                t2.setTextColor(Color.parseColor(map.get("color")+""));
                 EditText editText = new EditText(getApplicationContext());
                 editText.setHint("enter text");
                 editText.setBackgroundColor(Color.parseColor(map.get("color")+""));
@@ -160,6 +164,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 TextView t3 = new TextView(getApplicationContext());
                 t3.setText(map.get("displayName").toString());
                 t3.setLayoutParams(params4);
+                t3.setTextColor(Color.parseColor(map.get("color")+""));
                 CheckBox cb = new CheckBox(getApplicationContext());
                 cb.setButtonTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                 cb.setTextColor(Color.parseColor(map.get("color")+""));
@@ -180,6 +185,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 TextView t4 = new TextView(getApplicationContext());
                 t4.setText(map.get("displayName").toString());
                 t4.setLayoutParams(params5);
+                t4.setTextColor(Color.parseColor(map.get("color")+""));
                 NumberPicker np = new NumberPicker(getApplicationContext());
                 np.setLayoutParams(params5);
                 np.setMaxValue(Integer.parseInt(map.get("max").toString()));
@@ -229,25 +235,26 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
         String datastring="";
 
         for (int i = 0; i < numbernames.size(); i++) {
-            datastring+=numbernames.get(i)+":";
+            datastring+=numbernames.get(i)+"//://";
             datastring+=numberInputs.get(i).getValue() + "/de";
         }
         for (int i = 0; i < checkboxesnames.size(); i++) {
-            datastring+=checkboxesnames.get(i)+":";
+            datastring+=checkboxesnames.get(i)+"//://";
             datastring+=checkBoxes.get(i).isChecked()+ "/de";
         }
         for (int i = 0; i < edittextsnames.size(); i++) {
-            datastring+=edittextsnames.get(i)+":";
+            datastring+=edittextsnames.get(i)+"//://";
             datastring+=editTexts.get(i).getText().toString()+ "/de";
         }
         for (int i = 0; i < slidernames.size(); i++) {
-            datastring+=slidernames.get(i)+":";
+            datastring+=slidernames.get(i)+"//://";
             datastring+=sliders.get(i).getValue()+ "/de";
         }
         String data = databegin;
         int dataindex = paths.get(index).indexOf(data)+data.length();
         String pathwithdata = paths.get(index).substring(0,dataindex)+datastring+paths.get(index).substring(paths.get(index).indexOf(dataEnd));
         paths.set(index,pathwithdata);
+        writeToInternal("scoutersavedata.txt");
         if(view == next){
             Intent intent = new Intent(TeleopActivity.this,EndGame.class);
             intent.putExtra("paths",paths);
@@ -259,5 +266,19 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
             intent.putExtra("index",index);
             startActivity(intent);
         }
+    }
+    public void writeToInternal(String filename){
+        String thingsTosave = "";
+        for (String thingtoSave : paths ){
+            thingsTosave += thingtoSave;
+        }
+        try {
+            FileOutputStream fOut = openFileOutput("scoutersavedata.txt", Context.MODE_PRIVATE);
+            fOut.write(thingsTosave.getBytes());
+            fOut.close();
+        }catch (Exception e){
+            Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
     }
 }

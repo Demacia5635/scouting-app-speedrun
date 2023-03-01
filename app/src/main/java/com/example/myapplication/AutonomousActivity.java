@@ -3,6 +3,7 @@ package com.example.myapplication;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -31,6 +32,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -46,10 +49,12 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
     ArrayList<CheckBox> checkBoxes = new ArrayList<>();
     ArrayList<String> paths = new ArrayList<String>();
     int index;
+    boolean isloogedout = false;
     Button prev;
     Button next;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String databegin = "data:";
+    Boolean finisheddata = false;
     String dataEnd = "/endauto/";
 
     private FirebaseAuth auth;
@@ -59,12 +64,12 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
         setContentView(R.layout.activity_autonomous);
         linearLayout = findViewById(R.id.linearlayout);
         addViewsToLinearLayout();
-//        getpreviousdata();
         Intent intent = getIntent();
        for(String path : intent.getExtras().getStringArrayList("paths")){
            paths.add(path);
+           isloogedout = true;
        }
-       index = intent.getExtras().getInt("index");
+        index = intent.getExtras().getInt("index");
         Log.e("INDEX", paths.get(index));
        TextView match = findViewById(R.id.qualauto);
        String qualssubpath = paths.get(index).
@@ -78,12 +83,9 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
        match.setText(qualssubpath);
        prev = findViewById(R.id.prevendgame);
        if(index == 0){
-           prev.setVisibility(View.INVISIBLE);
+           prev.setText("Logout");
        }
        next = findViewById(R.id.nextteleop);
-       if(index == paths.size()-1){
-           next.setVisibility(View.INVISIBLE);
-       }
        prev.setOnClickListener(this);
        next.setOnClickListener(this);
         auth = FirebaseAuth.getInstance();
@@ -111,7 +113,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                 });
     }
     private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2022/data-params").document("autonomous");
+        DocumentReference docRef = db.collection("seasons/2023/data-params").document("autonomous");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -122,6 +124,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                         for(Map.Entry<String, Object> entry : params.entrySet()){
                             addviewfrommap((Map<String, Object>) entry.getValue());
                         }
+                        getpreviousdata();
                     }
                 }
             }
@@ -133,6 +136,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                  LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                  TextView t1 = new TextView(getApplicationContext());
                  t1.setText(map.get("displayName").toString());
+                 t1.setTextColor(Color.parseColor(map.get("color")+""));
                  Slider slider = new Slider(getApplicationContext());
                  slider.setThumbTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                  slider.setTrackTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
@@ -156,6 +160,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                  TextView t2 = new TextView(getApplicationContext());
                  t2.setText(map.get("displayName").toString());
                  t2.setLayoutParams(params3);
+                 t2.setTextColor(Color.parseColor(map.get("color")+""));
                  EditText editText = new EditText(getApplicationContext());
                  editText.setHint("enter text");
                  editText.setBackgroundColor(Color.parseColor(map.get("color")+""));
@@ -174,6 +179,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                  TextView t3 = new TextView(getApplicationContext());
                  t3.setText(map.get("displayName").toString());
                  t3.setLayoutParams(params4);
+                 t3.setTextColor(Color.parseColor(map.get("color")+""));
                  CheckBox cb = new CheckBox(getApplicationContext());
                  cb.setButtonTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                  cb.setTextColor(Color.parseColor(map.get("color")+""));
@@ -193,14 +199,18 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                  LinearLayout.LayoutParams params5 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                  TextView t4 = new TextView(getApplicationContext());
                  t4.setText(map.get("displayName").toString());
+                 t4.setTextColor(Color.parseColor(map.get("color")+""));
                  t4.setLayoutParams(params5);
                  NumberPicker np = new NumberPicker(getApplicationContext());
                  np.setLayoutParams(params5);
                  np.setMaxValue(Integer.parseInt(map.get("max").toString()));
                  np.setMinValue(Integer.parseInt(map.get("min").toString()));
+                 linearLayout.addView(t4);
                  linearLayout.addView(np);
+                 String temp = map.get("name").toString();
+                 Log.e("numbername: ",temp);
                  numberInputs.add(np);
-                 numbernames.add(map.get("name").toString());
+                 numbernames.add(temp);
 
                  break;
          }
@@ -214,66 +224,100 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
         String datastring="";
 
         for (int i = 0; i < numbernames.size(); i++) {
-            datastring+=numbernames.get(i)+":";
+            datastring+=numbernames.get(i)+"//://";
             datastring+=numberInputs.get(i).getValue() + "/de";
         }
         for (int i = 0; i < checkboxesnames.size(); i++) {
-            datastring+=checkboxesnames.get(i)+":";
+            datastring+=checkboxesnames.get(i)+"//://";
             datastring+=checkBoxes.get(i).isChecked()+ "/de";
         }
         for (int i = 0; i < edittextsnames.size(); i++) {
-            datastring+=edittextsnames.get(i)+":";
+            datastring+=edittextsnames.get(i)+"//://";
             datastring+=editTexts.get(i).getText().toString()+ "/de";
         }
         for (int i = 0; i < slidernames.size(); i++) {
-            datastring+=slidernames.get(i)+":";
+            datastring+=slidernames.get(i)+"//://";
             datastring+=sliders.get(i).getValue()+ "/de";
         }
         String data = databegin;
         int dataindex = paths.get(index).indexOf(data)+data.length();
         String pathwithdata = paths.get(index).substring(0,dataindex)+datastring+paths.get(index).substring(paths.get(index).indexOf(dataEnd));
         paths.set(index,pathwithdata);
+        writeToInternal("scoutersavedata.txt");
         if(view == next){
             Intent intent = new Intent(AutonomousActivity.this,TeleopActivity.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
             startActivity(intent);
         } else if (view==prev) {
+            if(isloogedout){
+                Intent intent = new Intent(AutonomousActivity.this,LoginActivity.class);
+                try {
+                    FileOutputStream fOut = openFileOutput("scoutersavedata.txt", Context.MODE_PRIVATE);
+                    String thingsToDelete = "";
+                    fOut.write(thingsToDelete.getBytes());
+                    fOut.close();
+                }catch (Exception e){
+                    Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                startActivity(intent);
+            }else {
             index--;
             Intent intent = new Intent(AutonomousActivity.this,EndGame.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
-            startActivity(intent);
+            startActivity(intent);}
         }
     }
     private void getpreviousdata(){
         String datalength = databegin;
+        String colondash = "//://";
         String data = paths.get(index).substring(paths.get(index).indexOf(datalength)+datalength.length(),paths.get(index).indexOf(dataEnd));
-        if(data.length()>=0){
+        Log.e("dodosize",data.length()+"");
+
+        if(data.length()>0){
+            Log.e("loop","entered");
+            Log.e("loop numbersize",numbernames.size()+"");
         for (int i = 0; i < numbernames.size(); i++) {
+            Log.e("number",numbernames.get(i));
             if(data.contains(numbernames.get(i))){
-                String temp = data.substring(data.indexOf(numbernames.get(i))+numbernames.get(i).length()+1);
+                String temp = data.substring(data.indexOf(numbernames.get(i))+numbernames.get(i).length()+colondash.length());
+                Log.e("datavalue",temp);
                 numberInputs.get(i).setValue(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
             }
         }
         for (int i = 0; i < checkboxesnames.size(); i++) {
             if(data.contains(checkboxesnames.get(i))){
-                String temp = data.substring(data.indexOf(checkboxesnames.get(i))+checkboxesnames.get(i).length()+1);
+                String temp = data.substring(data.indexOf(checkboxesnames.get(i))+checkboxesnames.get(i).length()+colondash.length());
                 checkBoxes.get(i).setChecked(Boolean.parseBoolean(temp.substring(0,temp.indexOf("/de"))));
             }
         }
         for (int i = 0; i < edittextsnames.size(); i++) {
             if(data.contains(edittextsnames.get(i))){
-                String temp = data.substring(data.indexOf(edittextsnames.get(i))+edittextsnames.get(i).length()+1);
+                String temp = data.substring(data.indexOf(edittextsnames.get(i))+edittextsnames.get(i).length()+colondash.length());
                 editTexts.get(i).setText(temp.substring(0,temp.indexOf("/de")));
             }
         }
         for (int i = 0; i < slidernames.size(); i++) {
             if(data.contains(slidernames.get(i))){
-                String temp = data.substring(data.indexOf(slidernames.get(i))+slidernames.get(i).length()+1);
+                String temp = data.substring(data.indexOf(slidernames.get(i))+slidernames.get(i).length()+colondash.length());
                 sliders.get(i).setValue(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
             }
         }
         }
+    }
+    public void writeToInternal(String filename){
+        String thingsTosave = "";
+        for (String thingtoSave : paths ){
+            thingsTosave += thingtoSave;
+        }
+        try {
+            FileOutputStream fOut = openFileOutput("scoutersavedata.txt", Context.MODE_PRIVATE);
+            fOut.write(thingsTosave.getBytes());
+            fOut.close();
+        }catch (Exception e){
+            Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
     }
 }

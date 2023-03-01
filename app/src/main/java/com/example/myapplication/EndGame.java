@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -33,6 +34,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 import android.os.Bundle;
@@ -70,6 +72,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         for(String path : intent.getExtras().getStringArrayList("paths")){
             paths.add(path);
         }
+        Log.e("SIZE",paths.size()+"");
         index = intent.getExtras().getInt("index");
         TextView match = findViewById(R.id.qualendgame);
         String qualssubpath = paths.get(index).substring(paths.get(index).indexOf("ISDE2"),paths.get(index).length());
@@ -79,6 +82,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         match.setText(qualssubpath);
         prev = findViewById(R.id.prevtele);
         next = findViewById(R.id.nextauto);
+        Log.e("INDEX",index+"");
         if(index == paths.size()-1){
             next.setText("submit");
             isdone = true;
@@ -110,7 +114,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 });
     }
     private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2022/data-params").document("endgame");
+        DocumentReference docRef = db.collection("seasons/2023/data-params").document("endgame");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -132,6 +136,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 TextView t1 = new TextView(getApplicationContext());
                 t1.setText(map.get("displayName").toString());
+                t1.setTextColor(Color.parseColor(map.get("color")+""));
                 Slider slider = new Slider(getApplicationContext());
                 slider.setThumbTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                 slider.setTrackTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
@@ -155,6 +160,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 TextView t2 = new TextView(getApplicationContext());
                 t2.setText(map.get("displayName").toString());
                 t2.setLayoutParams(params3);
+                t2.setTextColor(Color.parseColor(map.get("color")+""));
                 EditText editText = new EditText(getApplicationContext());
                 editText.setHint("enter text");
                 editText.setBackgroundColor(Color.parseColor(map.get("color")+""));
@@ -173,6 +179,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 TextView t3 = new TextView(getApplicationContext());
                 t3.setText(map.get("displayName").toString());
                 t3.setLayoutParams(params4);
+                t3.setTextColor(Color.parseColor(map.get("color")+""));
                 CheckBox cb = new CheckBox(getApplicationContext());
                 cb.setButtonTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                 cb.setTextColor(Color.parseColor(map.get("color")+""));
@@ -193,6 +200,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 TextView t4 = new TextView(getApplicationContext());
                 t4.setText(map.get("displayName").toString());
                 t4.setLayoutParams(params5);
+                t4.setTextColor(Color.parseColor(map.get("color")+""));
                 NumberPicker np = new NumberPicker(getApplicationContext());
                 np.setLayoutParams(params5);
                 np.setMaxValue(Integer.parseInt(map.get("max").toString()));
@@ -242,25 +250,26 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         String datastring="";
 
         for (int i = 0; i < numbernames.size(); i++) {
-            datastring+=numbernames.get(i)+":";
+            datastring+=numbernames.get(i)+"//://";
             datastring+=numberInputs.get(i).getValue() + "/de";
         }
         for (int i = 0; i < checkboxesnames.size(); i++) {
-            datastring+=checkboxesnames.get(i)+":";
+            datastring+=checkboxesnames.get(i)+"//://";
             datastring+=checkBoxes.get(i).isChecked()+ "/de";
         }
         for (int i = 0; i < edittextsnames.size(); i++) {
-            datastring+=edittextsnames.get(i)+":";
+            datastring+=edittextsnames.get(i)+"//://";
             datastring+=editTexts.get(i).getText().toString()+ "/de";
         }
         for (int i = 0; i < slidernames.size(); i++) {
-            datastring+=slidernames.get(i)+":";
+            datastring+=slidernames.get(i)+"//://";
             datastring+=sliders.get(i).getValue()+ "/de";
         }
         String data = databegin;
         int dataindex = paths.get(index).indexOf(data)+data.length();
         String pathwithdata = paths.get(index).substring(0,dataindex)+datastring+paths.get(index).substring(paths.get(index).indexOf(dataEnd));
         paths.set(index,pathwithdata);
+        writeToInternal("scoutersavedata.txt");
         if(view == next){
             if(!isdone){
             index++;
@@ -275,6 +284,20 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
             startActivity(intent);
+        }
+
+    }
+    public void writeToInternal(String filename){
+        String thingsTosave = "";
+        for (String thingtoSave : paths ){
+            thingsTosave += thingtoSave;
+        }
+        try {
+            FileOutputStream fOut = openFileOutput("scoutersavedata.txt", Context.MODE_PRIVATE);
+            fOut.write(thingsTosave.getBytes());
+            fOut.close();
+        }catch (Exception e){
+            Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
         }
 
     }

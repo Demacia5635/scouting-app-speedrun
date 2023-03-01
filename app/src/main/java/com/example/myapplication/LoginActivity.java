@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -23,6 +25,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
@@ -45,11 +48,39 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        Log.e("path",getFilesDir().toString());
         firstname = findViewById(R.id.firstname);
         lastname = findViewById(R.id.lastname);
         login = findViewById(R.id.login);
         login.setOnClickListener(this);
         auth = FirebaseAuth.getInstance();
+        String data="";
+        try{
+            FileInputStream fin = openFileInput("scoutersavedata.txt");
+            int c;
+
+            while( (c = fin.read()) != -1){
+                data = data + Character.toString((char)c);
+            }
+
+            fin.close();} catch (Exception e) {
+            Toast.makeText(this, "an error has occured please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+        if(data.length()>0){
+            String parsepath ="";
+            String endgame = "/endgame/";
+            while (data.length()>0){
+
+                parsepath = data.substring(0,data.indexOf(endgame)+endgame.length());
+                paths.add(parsepath);
+                data = data.substring(data.indexOf(endgame)+endgame.length());
+            }
+            Intent intent = new Intent(LoginActivity.this,AutonomousActivity.class);
+            intent.putExtra("paths",paths);
+            intent.putExtra("index",0);
+            startActivity(intent);
+        }
     }
 
     @Override
@@ -81,7 +112,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
     private void writefielddata(String id,String firstname,String lastname){
-        db.collection("seasons/2022/competitions/ISDE2/Quals")
+        db.collection("seasons/2023/competitions/ISDE2/Quals")
                 .whereArrayContains(id,firstname)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
