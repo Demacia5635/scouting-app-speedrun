@@ -65,7 +65,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
 
             fin.close();} catch (Exception e) {
-            Toast.makeText(this, "an error has occured please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         if(data.length()>0){
             String parsepath ="";

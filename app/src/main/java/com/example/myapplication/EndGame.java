@@ -22,6 +22,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -44,10 +45,11 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
     LinearLayout linearLayout;
     ArrayList<String> numbernames = new ArrayList<>();
     ArrayList<String> slidernames = new ArrayList<>();
+    ArrayList<SeekBar> seekBars = new ArrayList<>();
     ArrayList<String> edittextsnames = new ArrayList<>();
     ArrayList<String> checkboxesnames = new ArrayList<>();
     ArrayList<NumberPicker> numberInputs = new ArrayList<>();
-    ArrayList<Slider> sliders = new ArrayList<>();
+    ArrayList<TextView> sliders = new ArrayList<>();
     ArrayList<EditText> editTexts = new ArrayList<>();
     ArrayList<CheckBox> checkBoxes = new ArrayList<>();
     ArrayList<String> paths = new ArrayList<String>();
@@ -75,10 +77,10 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         Log.e("SIZE",paths.size()+"");
         index = intent.getExtras().getInt("index");
         TextView match = findViewById(R.id.qualendgame);
-        String qualssubpath = paths.get(index).substring(paths.get(index).indexOf("ISDE2"),paths.get(index).length());
-        qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
-        qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
-        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("data:"));
+        String qualssubpath = paths.get(index);
+        String quals = "Quals";
+        qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
+        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
         match.setText(qualssubpath);
         prev = findViewById(R.id.prevtele);
         next = findViewById(R.id.nextauto);
@@ -114,7 +116,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 });
     }
     private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2023/data-params").document("endgame");
+        DocumentReference docRef = db.collection("seasons/2023/data-params").document("summary");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -125,6 +127,9 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                         for(Map.Entry<String, Object> entry : params.entrySet()){
                             addviewfrommap((Map<String, Object>) entry.getValue());
                         }
+                        getpreviousdata();
+
+
                     }
                 }
             }
@@ -137,24 +142,53 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 TextView t1 = new TextView(getApplicationContext());
                 t1.setText(map.get("displayName").toString());
                 t1.setTextColor(Color.parseColor(map.get("color")+""));
-                Slider slider = new Slider(getApplicationContext());
+                SeekBar slider = new SeekBar(getApplicationContext());
                 slider.setThumbTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
-                slider.setTrackTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
-                slider.setValueFrom((Float) map.get("min"));
-                slider.setValueTo((Float) map.get("max"));
+                slider.setProgressTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
+                slider.setMin(Integer.parseInt(map.get("min").toString()));
+                slider.setMax(Integer.parseInt(map.get("max").toString()));
+                slider.setPadding(0,0,0,10);
+                slider.incrementProgressBy(Integer.parseInt(map.get("min").toString()));
                 t1.setLayoutParams(params);
-                LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(100, ViewGroup.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 slider.setLayoutParams(params2);
+                TextView slidervalue = new TextView(getApplicationContext());
+                SeekBar.OnSeekBarChangeListener abc = new SeekBar.OnSeekBarChangeListener() {
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                    }
+
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        //Executed when progress is changed
+                        slidervalue.setText(progress+"");
+                    }
+                };
+                slider.setOnSeekBarChangeListener(abc);
                 linearLayout.addView(t1);
+                linearLayout.addView(slidervalue);
                 linearLayout.addView(slider);
-                sliders.add(slider);
-                try {slider.setValue((Float) map.get("defaultValue"));
+                sliders.add(slidervalue);
+                seekBars.add(slider);
+                try {slider.setProgress((Integer.parseInt(map.get("defaultValue").toString())));
+                    slidervalue.setText(map.get("defaultValue")+"");
                 }catch (Exception e){
                 }
                 slidernames.add(map.get("name").toString());
 
 
+
+
                 break;
+
+
+
+
             case "text":
                 LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 TextView t2 = new TextView(getApplicationContext());
@@ -216,30 +250,38 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
     }
     private void getpreviousdata(){
         String datalength = databegin;
+        String colondash = "//://";
         String data = paths.get(index).substring(paths.get(index).indexOf(datalength)+datalength.length(),paths.get(index).indexOf(dataEnd));
-        if(data.length()>=0){
+        Log.e("dodosize",data.length()+"");
+
+        if(data.length()>0){
+            Log.e("loop","entered");
+            Log.e("loop numbersize",numbernames.size()+"");
             for (int i = 0; i < numbernames.size(); i++) {
+                Log.e("number",numbernames.get(i));
                 if(data.contains(numbernames.get(i))){
-                    String temp = data.substring(data.indexOf(numbernames.get(i))+numbernames.get(i).length()+1);
+                    String temp = data.substring(data.indexOf(numbernames.get(i))+numbernames.get(i).length()+colondash.length());
+                    Log.e("datavalue",temp);
                     numberInputs.get(i).setValue(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
                 }
             }
             for (int i = 0; i < checkboxesnames.size(); i++) {
                 if(data.contains(checkboxesnames.get(i))){
-                    String temp = data.substring(data.indexOf(checkboxesnames.get(i))+checkboxesnames.get(i).length()+1);
+                    String temp = data.substring(data.indexOf(checkboxesnames.get(i))+checkboxesnames.get(i).length()+colondash.length());
                     checkBoxes.get(i).setChecked(Boolean.parseBoolean(temp.substring(0,temp.indexOf("/de"))));
                 }
             }
             for (int i = 0; i < edittextsnames.size(); i++) {
                 if(data.contains(edittextsnames.get(i))){
-                    String temp = data.substring(data.indexOf(edittextsnames.get(i))+edittextsnames.get(i).length()+1);
+                    String temp = data.substring(data.indexOf(edittextsnames.get(i))+edittextsnames.get(i).length()+colondash.length());
                     editTexts.get(i).setText(temp.substring(0,temp.indexOf("/de")));
                 }
             }
             for (int i = 0; i < slidernames.size(); i++) {
                 if(data.contains(slidernames.get(i))){
-                    String temp = data.substring(data.indexOf(slidernames.get(i))+slidernames.get(i).length()+1);
-                    sliders.get(i).setValue(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                    String temp = data.substring(data.indexOf(slidernames.get(i))+slidernames.get(i).length()+colondash.length());
+                    sliders.get(i).setText(temp.substring(0,temp.indexOf("/de")));
+                    seekBars.get(i).setProgress(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
                 }
             }
         }
@@ -263,7 +305,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         }
         for (int i = 0; i < slidernames.size(); i++) {
             datastring+=slidernames.get(i)+"//://";
-            datastring+=sliders.get(i).getValue()+ "/de";
+            datastring+=sliders.get(i).getText()+ "/de";
         }
         String data = databegin;
         int dataindex = paths.get(index).indexOf(data)+data.length();

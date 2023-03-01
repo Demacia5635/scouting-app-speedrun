@@ -20,6 +20,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -44,7 +45,8 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
     ArrayList<String> edittextsnames = new ArrayList<>();
     ArrayList<String> checkboxesnames = new ArrayList<>();
     ArrayList<NumberPicker> numberInputs = new ArrayList<>();
-    ArrayList<Slider> sliders = new ArrayList<>();
+    ArrayList<SeekBar> seekBars = new ArrayList<>();
+    ArrayList<TextView> sliders = new ArrayList<>();
     ArrayList<EditText> editTexts = new ArrayList<>();
     ArrayList<CheckBox> checkBoxes = new ArrayList<>();
     ArrayList<String> paths = new ArrayList<String>();
@@ -69,17 +71,14 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
            paths.add(path);
            isloogedout = true;
        }
+
         index = intent.getExtras().getInt("index");
         Log.e("INDEX", paths.get(index));
        TextView match = findViewById(R.id.qualauto);
-       String qualssubpath = paths.get(index).
-               substring(paths.
-                       get(index).
-                       indexOf("ISDE2"),
-                       paths.get(index).length());
-       qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
-        qualssubpath = qualssubpath.substring(qualssubpath.indexOf("/")+1,qualssubpath.length());
-        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("data:"));
+       String qualssubpath = paths.get(index);
+       String quals = "Quals";
+       qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
+       qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
        match.setText(qualssubpath);
        prev = findViewById(R.id.prevendgame);
        if(index == 0){
@@ -137,21 +136,46 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                  TextView t1 = new TextView(getApplicationContext());
                  t1.setText(map.get("displayName").toString());
                  t1.setTextColor(Color.parseColor(map.get("color")+""));
-                 Slider slider = new Slider(getApplicationContext());
+                 SeekBar slider = new SeekBar(getApplicationContext());
                  slider.setThumbTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
-                 slider.setTrackTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
-                 slider.setValueFrom((Float) map.get("min"));
-                 slider.setValueTo((Float) map.get("max"));
+                 slider.setProgressTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
+                 slider.setMin(Integer.parseInt(map.get("min").toString()));
+                 slider.setMax(Integer.parseInt(map.get("max").toString()));
+                 slider.setPadding(0,0,0,10);
+                 slider.incrementProgressBy(Integer.parseInt(map.get("min").toString()));
                  t1.setLayoutParams(params);
-                 LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(100, ViewGroup.LayoutParams.WRAP_CONTENT);
+                 LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                  slider.setLayoutParams(params2);
+                 TextView slidervalue = new TextView(getApplicationContext());
+                 SeekBar.OnSeekBarChangeListener abc = new SeekBar.OnSeekBarChangeListener() {
+
+                     @Override
+                     public void onStopTrackingTouch(SeekBar seekBar) {
+                     }
+
+                     @Override
+                     public void onStartTrackingTouch(SeekBar seekBar) {
+                     }
+
+                     @Override
+                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                         //Executed when progress is changed
+                         slidervalue.setText(progress+"");
+                     }
+                 };
+                 slider.setOnSeekBarChangeListener(abc);
                  linearLayout.addView(t1);
+                 linearLayout.addView(slidervalue);
                  linearLayout.addView(slider);
-                 sliders.add(slider);
-                 try {slider.setValue((Float) map.get("defaultValue"));
+                 sliders.add(slidervalue);
+                 seekBars.add(slider);
+                 try {slider.setProgress((Integer.parseInt(map.get("defaultValue").toString())));
+                     slidervalue.setText(map.get("defaultValue")+"");
                  }catch (Exception e){
                  }
                  slidernames.add(map.get("name").toString());
+
+
 
 
                  break;
@@ -165,6 +189,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                  editText.setHint("enter text");
                  editText.setBackgroundColor(Color.parseColor(map.get("color")+""));
                  editText.setLayoutParams(params3);
+                 editText.setPadding(0,0,0,10);
                  linearLayout.addView(t2);
                  linearLayout.addView(editText);
                  try {editText.setText(map.get("defaultValue")+"");
@@ -184,6 +209,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                  cb.setButtonTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                  cb.setTextColor(Color.parseColor(map.get("color")+""));
                  cb.setText(map.get("displayName").toString());
+                 cb.setPadding(0,0,0,10);
                  linearLayout.addView(t3);
                  linearLayout.addView(cb);
                  try {
@@ -205,6 +231,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                  np.setLayoutParams(params5);
                  np.setMaxValue(Integer.parseInt(map.get("max").toString()));
                  np.setMinValue(Integer.parseInt(map.get("min").toString()));
+                 np.setPadding(0,0,0,10);
                  linearLayout.addView(t4);
                  linearLayout.addView(np);
                  String temp = map.get("name").toString();
@@ -237,7 +264,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
         }
         for (int i = 0; i < slidernames.size(); i++) {
             datastring+=slidernames.get(i)+"//://";
-            datastring+=sliders.get(i).getValue()+ "/de";
+            datastring+=sliders.get(i).getText()+ "/de";
         }
         String data = databegin;
         int dataindex = paths.get(index).indexOf(data)+data.length();
@@ -301,7 +328,8 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
         for (int i = 0; i < slidernames.size(); i++) {
             if(data.contains(slidernames.get(i))){
                 String temp = data.substring(data.indexOf(slidernames.get(i))+slidernames.get(i).length()+colondash.length());
-                sliders.get(i).setValue(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                sliders.get(i).setText(temp.substring(0,temp.indexOf("/de")));
+                seekBars.get(i).setProgress(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
             }
         }
         }
