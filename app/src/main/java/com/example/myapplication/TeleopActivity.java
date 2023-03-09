@@ -8,7 +8,11 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -40,15 +44,14 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
     ArrayList<String> slidernames = new ArrayList<>();
     ArrayList<String> edittextsnames = new ArrayList<>();
     ArrayList<String> checkboxesnames = new ArrayList<>();
-    ArrayList<NumberPicker> numberInputs = new ArrayList<>();
+    ArrayList<TextView> numberInputs = new ArrayList<>();
     ArrayList<SeekBar> seekBars = new ArrayList<>();
     ArrayList<TextView> sliders = new ArrayList<>();
     ArrayList<EditText> editTexts = new ArrayList<>();
     ArrayList<CheckBox> checkBoxes = new ArrayList<>();
     ArrayList<String> paths = new ArrayList<String>();
     int index;
-    Button prev;
-    Button next;
+    Button prev , next , gotoquals;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String databegin = "/endauto/";
     String dataEnd = "/endtele/";
@@ -60,11 +63,11 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
         setContentView(R.layout.activity_teleop);
         linearLayout = findViewById(R.id.linearlayoutteled);
         addViewsToLinearLayout();
-//        getpreviousdata();
         Intent intent = getIntent();
         for(String path : intent.getExtras().getStringArrayList("paths")){
             paths.add(path);
         }
+        gotoquals = findViewById(R.id.fromteletoquals);
         index = intent.getExtras().getInt("index");
         TextView match = findViewById(R.id.qualtele);
         String qualssubpath = paths.get(index);
@@ -76,6 +79,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
         match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
         prev = findViewById(R.id.prevauto);
         next = findViewById(R.id.nextendgame);
+        gotoquals.setOnClickListener(this);
         prev.setOnClickListener(this);
         next.setOnClickListener(this);
         auth = FirebaseAuth.getInstance();
@@ -103,7 +107,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 });
     }
     private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2023/data-params").document("teleop");
+        DocumentReference docRef = db.collection("seasons/2022/data-params").document("teleop");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -126,7 +130,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 TextView t1 = new TextView(getApplicationContext());
                 t1.setText(map.get("displayName").toString());
-                t1.setTextColor(Color.parseColor("#FFFFFF"));
+                t1.setTextColor(Color.parseColor(map.get("color")+""));
                 SeekBar slider = new SeekBar(getApplicationContext());
                 slider.setThumbTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                 slider.setProgressTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
@@ -181,6 +185,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 editText.setHint("enter text");
                 editText.setBackgroundColor(Color.parseColor(map.get("color")+""));
                 editText.setLayoutParams(params3);
+                editText.setPadding(0,0,0,10);
                 linearLayout.addView(t2);
                 linearLayout.addView(editText);
                 try {editText.setText(map.get("defaultValue")+"");
@@ -200,6 +205,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 cb.setButtonTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                 cb.setTextColor(Color.parseColor(map.get("color")+""));
                 cb.setText(map.get("displayName").toString());
+                cb.setPadding(0,0,0,10);
                 linearLayout.addView(t3);
                 linearLayout.addView(cb);
                 try {
@@ -213,17 +219,79 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 break;
             case "number":
                 LinearLayout.LayoutParams params5 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams params6 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams params52 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params52.weight = 5;
                 TextView t4 = new TextView(getApplicationContext());
+                LinearLayout l = new LinearLayout(getApplicationContext());
+                l.setWeightSum(5);
+                l.setLayoutParams(params6);
                 t4.setText(map.get("displayName").toString());
-                t4.setLayoutParams(params5);
                 t4.setTextColor(Color.parseColor(map.get("color")+""));
-                NumberPicker np = new NumberPicker(getApplicationContext());
-                np.setLayoutParams(params5);
-                np.setMaxValue(Integer.parseInt(map.get("max").toString()));
-                np.setMinValue(Integer.parseInt(map.get("min").toString()));
-                linearLayout.addView(np);
+                t4.setLayoutParams(params5);
+                EditText np = new EditText(getApplicationContext());
+                np.setGravity(Gravity.CENTER_HORIZONTAL);
+                np.setLayoutParams(params52);
+                np.setText("1");
+                np.setInputType(InputType.TYPE_CLASS_NUMBER);
+                np.setPadding(0,0,0,10);
+                Button minus =  new Button(getApplicationContext());
+                minus.setText("-");
+                minus.setLayoutParams(params5);
+                Button plus = new Button(getApplicationContext());
+                plus.setText("+");
+                plus.setTextColor(Color.parseColor(map.get("color")+""));
+                minus.setTextColor(Color.parseColor(map.get("color")+""));
+                np.setTextColor(Color.parseColor(map.get("color")+""));                l.addView(plus);
+                l.addView(np);
+                l.addView(minus);
+                linearLayout.addView(t4);
+                linearLayout.addView(l);
                 numberInputs.add(np);
                 numbernames.add(map.get("name").toString());
+                plus.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(Integer.parseInt(np.getText()+"") < Integer.parseInt(map.get("max").toString())){
+                            int num = Integer.parseInt(np.getText().toString())+1;
+                            Log.e("deez",num+"");
+                            np.setText(""+num);
+                        }
+                    }
+                });
+                plus.setLayoutParams(params5);
+
+                minus.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(Integer.parseInt(np.getText()+"") > 0){
+
+                            np.setText(Integer.parseInt(np.getText()+"")-1);
+                        }
+                    }
+                });
+                np.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        if(!charSequence.toString().equals("")){
+                            int value = Integer.parseInt(charSequence.toString());
+                            if(value>Integer.parseInt(map.get("max").toString())){
+                                np.setText(map.get("max").toString());
+                            } else if (value<Integer.parseInt(map.get("min").toString())) {
+                                np.setText(map.get("min").toString());
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+                    }
+                });
 
                 break;
         }
@@ -244,7 +312,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 if(data.contains(numbernames.get(i))){
                     String temp = data.substring(data.indexOf(numbernames.get(i))+numbernames.get(i).length()+colondash.length());
                     Log.e("datavalue",temp);
-                    numberInputs.get(i).setValue(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                    numberInputs.get(i).setText(Integer.parseInt(temp.substring(0,temp.indexOf("/de")))+"");
                 }
             }
             for (int i = 0; i < checkboxesnames.size(); i++) {
@@ -275,7 +343,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
 
         for (int i = 0; i < numbernames.size(); i++) {
             datastring+=numbernames.get(i)+"//://";
-            datastring+=numberInputs.get(i).getValue() + "/de";
+            datastring+=numberInputs.get(i).getText() + "/de";
         }
         for (int i = 0; i < checkboxesnames.size(); i++) {
             datastring+=checkboxesnames.get(i)+"//://";
@@ -303,6 +371,11 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
             Intent intent = new Intent(TeleopActivity.this,AutonomousActivity.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
+            startActivity(intent);
+        }else if(view == gotoquals){
+            Intent intent = new Intent(TeleopActivity.this,RecycleAct.class);
+            intent.putExtra("paths",paths);
+            Log.e("preeses","pressed");
             startActivity(intent);
         }
     }

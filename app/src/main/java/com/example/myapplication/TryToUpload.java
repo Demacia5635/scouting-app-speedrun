@@ -1,8 +1,13 @@
 package com.example.myapplication;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -11,6 +16,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -30,7 +36,6 @@ public class TryToUpload extends Service {
     private ConnectivityManager cm;
     private  boolean didfinish;
     private FirebaseFirestore db;
-
     private FirebaseAuth auth;
 
     @Override
@@ -72,9 +77,37 @@ public class TryToUpload extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        int NOTIFICATION_ID = 234;
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        String CHANNEL_ID;
+        Bitmap icon = BitmapFactory.decodeResource(getResources(),
+                R.mipmap.ic_launcher_foreground);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            CHANNEL_ID = "my_channel_01";
+            CharSequence name = "my_channel";
+            String Description = "This is my channel";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+            mChannel.setDescription(Description);
+            mChannel.enableLights(true);
+            mChannel.setLightColor(Color.GREEN);
+            mChannel.enableVibration(true);
+            mChannel.setShowBadge(false);
+            notificationManager.createNotificationChannel(mChannel);
+        }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,"my_channel_01")
+                .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                .setContentTitle("upload scouting data")
+                .setLargeIcon(icon)
+                .setContentText("waiting for internet connection...");
+
+        notificationManager.notify(NOTIFICATION_ID, builder.build());
+
         while (!didfinish){
             if(netInfo.isConnected()){
-                mp1.start();
+//                mp1.start();
                 String data="";
                 try{
                 FileInputStream fin = openFileInput("scoutersavedata.txt");
@@ -87,7 +120,12 @@ public class TryToUpload extends Service {
                     fin.close();} catch (Exception e) {
                 Toast.makeText(this, "an error has occured please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
+
+//                mBuilder.setContentText("uploading files to firebase");
+                no
                 if(data.length()>0){
+                    int totalcharnum = 0;
+                    int originallength = data.length();
                     String parsevalue = "";
                     String parsename = "";
                     String parsepath="";
@@ -96,6 +134,8 @@ public class TryToUpload extends Service {
                     String teleend = "/endtele/";
                     String endgame = "/endgame/";
                     while (data.length()>0){
+                        builder.setProgress(originallength,totalcharnum,false);
+//                        mNotifyManager.notify(NOTIFICATION_ID,builder.build());
 
                         parsepath = data.substring(0,data.indexOf(autostart));
 
@@ -105,7 +145,12 @@ public class TryToUpload extends Service {
                         addfielstofirebase(parsepath,data.substring(data.indexOf(autoend)+autoend.length(),data.indexOf(teleend)),"teleop");
                         addfielstofirebase(parsepath,data.substring(data.indexOf(teleend)+teleend.length(),data.indexOf(endgame)),"summary");
                         data = data.substring(data.indexOf(endgame)+endgame.length());
+                        totalcharnum=originallength - data.length();
                     }
+//                    builder.setContentText("Download completed")
+//                            // Removes the progress bar
+//                            .setProgress(0,0,false);
+//                    mNotifyManager.notify(NOTIFICATION_ID, builder.build());
                     didfinish = true;
 
                 }

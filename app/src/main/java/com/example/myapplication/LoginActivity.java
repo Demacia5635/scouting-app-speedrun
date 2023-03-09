@@ -133,7 +133,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
     private void writefielddata(String id,String firstname,String lastname){
-        db.collection("seasons/2023/competitions/ISDE2/Quals")
+        db.collection("seasons/2022/competitions/ISDE2/Quals")
                 .whereArrayContains(id,firstname)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -174,6 +174,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 paths.set(i,PathToAddbefore.get(i)+"Qual"+sorting.get(i)+PathToAddAfter.get(i));
                             }
                             intent.putExtra("paths",paths);
+                            Log.e("patjo",paths.size()+"");
                             intent.putExtra("index",0);
 
                             startActivity(intent);
