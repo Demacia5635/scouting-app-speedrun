@@ -37,6 +37,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     EditText firstname;
     EditText lastname;
     Button login;
+
     String thingsTosave = "";
     ArrayList<String> paths = new ArrayList<String>();
     boolean failed = false;

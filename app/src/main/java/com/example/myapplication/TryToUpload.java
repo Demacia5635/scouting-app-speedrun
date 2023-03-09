@@ -27,16 +27,25 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TryToUpload extends Service {
+    private NotificationManager notificationManager;
+    private NotificationCompat.Builder builder;
     private MediaPlayer mp1;
+    private String CHANNEL_ID;
+    private int NOTIFICATION_ID = 234;
+    private Bitmap icon;
     private NetworkInfo netInfo;
     private ConnectivityManager cm;
     private  boolean didfinish;
     private FirebaseFirestore db;
+    ArrayList<ToUploadVar> dataToUpload;
     private FirebaseAuth auth;
+    int tocomplete;
+    int completed;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -47,12 +56,35 @@ public class TryToUpload extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        dataToUpload = new ArrayList<>();
         mp1 = MediaPlayer.create(this,R.raw.popo);
         mp1.setLooping(false);
         cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         try{
         netInfo = cm.getActiveNetworkInfo();}catch (Exception e){
             Toast.makeText(this, "a network error has occured please contact supervisior error: "+e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+         builder = new NotificationCompat.Builder(this,"my_channel_01")
+                .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                .setContentTitle("upload scouting data")
+                .setLargeIcon(icon)
+                .setContentText("waiting for internet connection...");
+
+        icon = BitmapFactory.decodeResource(getResources(),
+                R.mipmap.ic_launcher_foreground);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            CHANNEL_ID = "my_channel_01";
+            CharSequence name = "my_channel";
+            String Description = "This is my channel";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+            mChannel.setDescription(Description);
+            mChannel.enableLights(true);
+            mChannel.setLightColor(Color.GREEN);
+            mChannel.enableVibration(true);
+            mChannel.setShowBadge(false);
+            notificationManager.createNotificationChannel(mChannel);
         }
         db =  FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
@@ -77,37 +109,20 @@ public class TryToUpload extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        int NOTIFICATION_ID = 234;
 
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        String CHANNEL_ID;
-        Bitmap icon = BitmapFactory.decodeResource(getResources(),
-                R.mipmap.ic_launcher_foreground);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            CHANNEL_ID = "my_channel_01";
-            CharSequence name = "my_channel";
-            String Description = "This is my channel";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
-            mChannel.setDescription(Description);
-            mChannel.enableLights(true);
-            mChannel.setLightColor(Color.GREEN);
-            mChannel.enableVibration(true);
-            mChannel.setShowBadge(false);
-            notificationManager.createNotificationChannel(mChannel);
-        }
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,"my_channel_01")
-                .setSmallIcon(R.mipmap.ic_launcher_foreground)
-                .setContentTitle("upload scouting data")
-                .setLargeIcon(icon)
-                .setContentText("waiting for internet connection...");
+
+
 
         notificationManager.notify(NOTIFICATION_ID, builder.build());
 
         while (!didfinish){
+            Log.e("running?","turn");
+            if(netInfo !=null){
+
             if(netInfo.isConnected()){
 //                mp1.start();
+                Toast.makeText(this, "you have internet connection", Toast.LENGTH_SHORT).show();
                 String data="";
                 try{
                 FileInputStream fin = openFileInput("scoutersavedata.txt");
@@ -121,8 +136,8 @@ public class TryToUpload extends Service {
                 Toast.makeText(this, "an error has occured please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
 
-//                mBuilder.setContentText("uploading files to firebase");
-                no
+               builder.setContentText("uploading files to firebase");
+
                 if(data.length()>0){
                     int totalcharnum = 0;
                     int originallength = data.length();
@@ -134,7 +149,6 @@ public class TryToUpload extends Service {
                     String teleend = "/endtele/";
                     String endgame = "/endgame/";
                     while (data.length()>0){
-                        builder.setProgress(originallength,totalcharnum,false);
 //                        mNotifyManager.notify(NOTIFICATION_ID,builder.build());
 
                         parsepath = data.substring(0,data.indexOf(autostart));
@@ -147,19 +161,50 @@ public class TryToUpload extends Service {
                         data = data.substring(data.indexOf(endgame)+endgame.length());
                         totalcharnum=originallength - data.length();
                     }
-//                    builder.setContentText("Download completed")
-//                            // Removes the progress bar
-//                            .setProgress(0,0,false);
-//                    mNotifyManager.notify(NOTIFICATION_ID, builder.build());
+                    uploadDataToFirestore();
                     didfinish = true;
 
                 }
 
 
             }
+            }else {
+                try{
+                    netInfo = cm.getActiveNetworkInfo();}catch (Exception e){
+                    Toast.makeText(this, "a network error has occured please contact supervisior error: "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+            Toast.makeText(this, "still cycles", Toast.LENGTH_SHORT).show();
         }
         return START_STICKY;
     }
+
+    private void uploadDataToFirestore() {
+        tocomplete = dataToUpload.size();
+        for(ToUploadVar toUploadVar : dataToUpload){
+            try{
+                db.collection(toUploadVar.getDatapath()).document(toUploadVar.getMode()).set(toUploadVar.getFirebasedat(),SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        completed++;
+                        if(completed == tocomplete){
+                            builder.setProgress(0,0,false);
+                            builder.setContentText("finished uploading");
+                            notificationManager.notify(NOTIFICATION_ID, builder.build());
+                        }else {
+                        builder.setProgress(tocomplete,completed,false);
+                        notificationManager.notify(NOTIFICATION_ID, builder.build());}
+                    }
+                });
+            }
+            catch (Exception e){
+                Toast.makeText(this, "an error has accourd please contact supervisor details: "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("didnt","succed");
+                didfinish = true;
+            }
+        }
+    }
+
     private  void addfielstofirebase(String datapath,String data2,String mode){;
         String temp="";
         Map<String, Object> firebasedat = new HashMap<>();
@@ -194,14 +239,10 @@ public class TryToUpload extends Service {
                 }
 
             }
+            ToUploadVar toUploadVar = new ToUploadVar(firebasedat,datapath,mode);
+            dataToUpload.add(toUploadVar);
             data2 = data2.substring(data2.indexOf(valueseprator)+valueseprator.length());
         }
-        try{
-        db.collection(datapath).document(mode).set(firebasedat,SetOptions.merge());}
-        catch (Exception e){
-            Toast.makeText(this, "an error has accourd please contact supervisor details: "+e.getMessage(), Toast.LENGTH_SHORT).show();
-            Log.e("didnt","succed");
-            didfinish = true;
-        }
+
     }
 }
