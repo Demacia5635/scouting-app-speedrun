@@ -69,6 +69,8 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String databegin = "/endtele/";
     String dataEnd = "/endgame/";
+    String valueend = "/de";
+
 
     private FirebaseAuth auth;
 
@@ -129,7 +131,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 });
     }
     private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2022/data-params").document("summary");
+        DocumentReference docRef = db.collection("seasons/2023/data-params").document("summary");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -159,13 +161,15 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 slider.setProgressTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                 slider.setMin(Integer.parseInt(map.get("min").toString()));
                 slider.setMax(Integer.parseInt(map.get("max").toString()));
-                slider.setPadding(0,0,0,10);
+                t1.setPadding(0,100,0,0);
+                slider.setPadding(75,0,75,0);
                 slider.incrementProgressBy(Integer.parseInt(map.get("min").toString()));
                 t1.setLayoutParams(params);
                 LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 slider.setLayoutParams(params2);
                 TextView slidervalue = new TextView(getApplicationContext());
                 slidervalue.setTextColor(Color.parseColor(map.get("color")+""));
+                slidervalue.setLayoutParams(params);
                 SeekBar.OnSeekBarChangeListener abc = new SeekBar.OnSeekBarChangeListener() {
 
                     @Override
@@ -193,7 +197,9 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 }catch (Exception e){
                 }
                 slidernames.add(map.get("name").toString());
-
+                if(map.get("name").toString().equals("placed_game_piece")){
+                    Log.e("wtf","wtf");
+                }
 
 
 
@@ -208,7 +214,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 editText.setHint("enter text");
                 editText.setBackgroundColor(Color.parseColor(map.get("color")+""));
                 editText.setLayoutParams(params3);
-                editText.setPadding(0,0,0,10);
+                t2.setPadding(0,100,0,0);
                 linearLayout.addView(t2);
                 linearLayout.addView(editText);
                 try {editText.setText(map.get("defaultValue")+"");
@@ -226,9 +232,8 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 t3.setTextColor(Color.parseColor(map.get("color")+""));
                 CheckBox cb = new CheckBox(getApplicationContext());
                 cb.setButtonTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
-                cb.setTextColor(Color.parseColor(map.get("color")+""));
-                cb.setText(map.get("displayName").toString());
-                cb.setPadding(0,0,0,10);
+                t3.setPadding(0,100,0,0);
+                cb.setLayoutParams(params4);
                 linearLayout.addView(t3);
                 linearLayout.addView(cb);
                 try {
@@ -257,7 +262,8 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 np.setLayoutParams(params52);
                 np.setText("1");
                 np.setInputType(InputType.TYPE_CLASS_NUMBER);
-                np.setPadding(0,0,0,10);
+                t4.setPadding(0,100,0,0);
+                l.setPadding(50,0,50,0);
                 Button minus =  new Button(getApplicationContext());
                 minus.setText("-");
                 minus.setLayoutParams(params5);
@@ -265,9 +271,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 plus.setText("+");
                 plus.setTextColor(Color.parseColor(map.get("color")+""));
                 minus.setTextColor(Color.parseColor(map.get("color")+""));
-                np.setTextColor(Color.parseColor(map.get("color")+""));
-
-                l.addView(plus);
+                np.setTextColor(Color.parseColor(map.get("color")+""));                l.addView(plus);
                 l.addView(np);
                 l.addView(minus);
                 linearLayout.addView(t4);
@@ -289,10 +293,9 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                 minus.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(Integer.parseInt(np.getText()+"") > Integer.parseInt(map.get("min").toString())){
-                            int num = Integer.parseInt(np.getText().toString())-1;
-                            Log.e("deez",num+"");
-                            np.setText(""+num);
+                        if(Integer.parseInt(np.getText()+"") > 0){
+
+                            np.setText((Integer.parseInt(np.getText()+"")-1)+"");
                         }
                     }
                 });
@@ -316,7 +319,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
 
                     @Override
                     public void afterTextChanged(Editable editable) {
-                        }
+                    }
                 });
 
                 break;
@@ -326,11 +329,12 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
     }
 
 
-
     private void getpreviousdata(){
         String datalength = databegin;
         String colondash = "//://";
-        String data = paths.get(index).substring(paths.get(index).indexOf(datalength)+datalength.length(),paths.get(index).indexOf(dataEnd));
+        String data = "/de"+paths.get(index).substring(paths.get(index).indexOf(datalength)+datalength.length(),paths.get(index).indexOf(dataEnd));
+//         data = data.replaceFirst(databegin,data+valueend);
+        Log.e("dodod",data);
         Log.e("dodosize",data.length()+"");
 
         if(data.length()>0){
@@ -339,28 +343,36 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
             for (int i = 0; i < numbernames.size(); i++) {
                 Log.e("number",numbernames.get(i));
                 if(data.contains(numbernames.get(i))){
-                    String temp = data.substring(data.indexOf(numbernames.get(i))+numbernames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+numbernames.get(i)+colondash)+numbernames.get(i).length()+colondash.length()+valueend.length());
                     Log.e("datavalue",temp);
-                    numberInputs.get(i).setText(Integer.parseInt(temp.substring(0,temp.indexOf("/de")))+"");
+                    try {
+                        numberInputs.get(i).setText(Integer.parseInt(temp.substring(0,temp.indexOf("/de")))+"");
+
+                    }catch (Exception e){}
                 }
             }
             for (int i = 0; i < checkboxesnames.size(); i++) {
                 if(data.contains(checkboxesnames.get(i))){
-                    String temp = data.substring(data.indexOf(checkboxesnames.get(i))+checkboxesnames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+checkboxesnames.get(i)+colondash)+checkboxesnames.get(i).length()+colondash.length()+valueend.length());
                     checkBoxes.get(i).setChecked(Boolean.parseBoolean(temp.substring(0,temp.indexOf("/de"))));
                 }
             }
             for (int i = 0; i < edittextsnames.size(); i++) {
                 if(data.contains(edittextsnames.get(i))){
-                    String temp = data.substring(data.indexOf(edittextsnames.get(i))+edittextsnames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+edittextsnames.get(i)+colondash)+edittextsnames.get(i).length()+colondash.length());
                     editTexts.get(i).setText(temp.substring(0,temp.indexOf("/de")));
                 }
             }
             for (int i = 0; i < slidernames.size(); i++) {
                 if(data.contains(slidernames.get(i))){
-                    String temp = data.substring(data.indexOf(slidernames.get(i))+slidernames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+slidernames.get(i)+colondash)+slidernames.get(i).length()+colondash.length()+valueend.length());
+                    if(temp.equals("om//://0")){
+                        Log.e("stam",temp);
+                    }
                     sliders.get(i).setText(temp.substring(0,temp.indexOf("/de")));
-                    seekBars.get(i).setProgress(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                    try {
+                        seekBars.get(i).setProgress(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                    }catch (Exception e){}
                 }
             }
         }
@@ -392,18 +404,15 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         paths.set(index,pathwithdata);
         writeToInternal("scoutersavedata.txt");
         if(view == next){
+            stopService(new Intent(this,TryToUploadBackground.class));
+            startService(new Intent(this,TryToUploadBackground.class));
             if(!isdone){
-
-
-
-
-
                 index++;
             Intent intent = new Intent(this,AutonomousActivity.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
             startActivity(intent);}else {
-                startService(new Intent(this,TryToUpload.class));
+
             }
         } else if (view==prev) {
             Intent intent = new Intent(this,TeleopActivity.class);

@@ -134,24 +134,30 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
     private void writefielddata(String id,String firstname,String lastname){
-        db.collection("seasons/2022/competitions/ISDE2/Quals")
+        db.collection("seasons/2023/competitions/ISDE2/Quals")
                 .whereArrayContains(id,firstname)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        Boolean auth = false;
                         if(task.isSuccessful()){
+                            if(task.getResult().getDocuments().size() > 0){
                             for (QueryDocumentSnapshot document : task.getResult()) {
+
                                 ArrayList<String> group = (ArrayList<String>) document.get(id);
                                 if(group.get(2).equals(lastname)){
                                     Log.e("read: ",document.getReference().getPath()+"/"+document.getString(id+"-path"));
                                     paths.add(document.getReference().getPath()+"/"+document.getString(id+"-path")+"data:/endauto//endtele//endgame/");
-
+                                    auth = true;
                                     writeToInternal("datapaths.txt",document.getReference().getPath()+"/"+document.getString(id+"-path"));
+
+                                }else {
 
                                 }
 
                             }
+                            if(auth){
                             Intent intent = new Intent(LoginActivity.this,AutonomousActivity.class);
                             ArrayList<Integer> sorting = new ArrayList<Integer>();
                             ArrayList<String> PathToAddbefore=new ArrayList<>();
@@ -178,9 +184,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             Log.e("patjo",paths.size()+"");
                             intent.putExtra("index",0);
 
-                            startActivity(intent);
+                            startActivity(intent);}else  {
+                                Toast.makeText(LoginActivity.this, "no such user exsits", Toast.LENGTH_SHORT).show();
+                            }
+                            }else {
+
+                                Toast.makeText(LoginActivity.this, "no such user exsits", Toast.LENGTH_SHORT).show();
+                            }
                         }else {
-                            Log.e("ERROR:", task.getException().toString());
                             Toast.makeText(LoginActivity.this, "no such user exsits", Toast.LENGTH_SHORT).show();
                         }
                     }

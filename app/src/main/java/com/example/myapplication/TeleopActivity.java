@@ -55,6 +55,8 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String databegin = "/endauto/";
     String dataEnd = "/endtele/";
+    String valueend = "/de";
+
 
     private FirebaseAuth auth;
     @Override
@@ -107,7 +109,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 });
     }
     private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2022/data-params").document("teleop");
+        DocumentReference docRef = db.collection("seasons/2023/data-params").document("teleop");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -136,13 +138,15 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 slider.setProgressTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
                 slider.setMin(Integer.parseInt(map.get("min").toString()));
                 slider.setMax(Integer.parseInt(map.get("max").toString()));
-                slider.setPadding(0,0,0,10);
+                t1.setPadding(0,100,0,0);
+                slider.setPadding(75,0,75,0);
                 slider.incrementProgressBy(Integer.parseInt(map.get("min").toString()));
                 t1.setLayoutParams(params);
                 LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 slider.setLayoutParams(params2);
                 TextView slidervalue = new TextView(getApplicationContext());
                 slidervalue.setTextColor(Color.parseColor(map.get("color")+""));
+                slidervalue.setLayoutParams(params);
                 SeekBar.OnSeekBarChangeListener abc = new SeekBar.OnSeekBarChangeListener() {
 
                     @Override
@@ -170,7 +174,9 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 }catch (Exception e){
                 }
                 slidernames.add(map.get("name").toString());
-
+                if(map.get("name").toString().equals("placed_game_piece")){
+                    Log.e("wtf","wtf");
+                }
 
 
 
@@ -185,7 +191,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 editText.setHint("enter text");
                 editText.setBackgroundColor(Color.parseColor(map.get("color")+""));
                 editText.setLayoutParams(params3);
-                editText.setPadding(0,0,0,10);
+                t2.setPadding(0,100,0,0);
                 linearLayout.addView(t2);
                 linearLayout.addView(editText);
                 try {editText.setText(map.get("defaultValue")+"");
@@ -203,9 +209,8 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 t3.setTextColor(Color.parseColor(map.get("color")+""));
                 CheckBox cb = new CheckBox(getApplicationContext());
                 cb.setButtonTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
-                cb.setTextColor(Color.parseColor(map.get("color")+""));
-                cb.setText(map.get("displayName").toString());
-                cb.setPadding(0,0,0,10);
+                t3.setPadding(0,100,0,0);
+                cb.setLayoutParams(params4);
                 linearLayout.addView(t3);
                 linearLayout.addView(cb);
                 try {
@@ -234,7 +239,8 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                 np.setLayoutParams(params52);
                 np.setText("1");
                 np.setInputType(InputType.TYPE_CLASS_NUMBER);
-                np.setPadding(0,0,0,10);
+                t4.setPadding(0,100,0,0);
+                l.setPadding(50,0,50,0);
                 Button minus =  new Button(getApplicationContext());
                 minus.setText("-");
                 minus.setLayoutParams(params5);
@@ -266,7 +272,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                     public void onClick(View view) {
                         if(Integer.parseInt(np.getText()+"") > 0){
 
-                            np.setText(Integer.parseInt(np.getText()+"")-1);
+                            np.setText((Integer.parseInt(np.getText()+"")-1)+"");
                         }
                     }
                 });
@@ -301,7 +307,9 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
     private void getpreviousdata(){
         String datalength = databegin;
         String colondash = "//://";
-        String data = paths.get(index).substring(paths.get(index).indexOf(datalength)+datalength.length(),paths.get(index).indexOf(dataEnd));
+        String data = "/de"+paths.get(index).substring(paths.get(index).indexOf(datalength)+datalength.length(),paths.get(index).indexOf(dataEnd));
+//         data = data.replaceFirst(databegin,data+valueend);
+        Log.e("dodod",data);
         Log.e("dodosize",data.length()+"");
 
         if(data.length()>0){
@@ -310,28 +318,36 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
             for (int i = 0; i < numbernames.size(); i++) {
                 Log.e("number",numbernames.get(i));
                 if(data.contains(numbernames.get(i))){
-                    String temp = data.substring(data.indexOf(numbernames.get(i))+numbernames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+numbernames.get(i)+colondash)+numbernames.get(i).length()+colondash.length()+valueend.length());
                     Log.e("datavalue",temp);
-                    numberInputs.get(i).setText(Integer.parseInt(temp.substring(0,temp.indexOf("/de")))+"");
+                    try {
+                        numberInputs.get(i).setText(Integer.parseInt(temp.substring(0,temp.indexOf("/de")))+"");
+
+                    }catch (Exception e){}
                 }
             }
             for (int i = 0; i < checkboxesnames.size(); i++) {
                 if(data.contains(checkboxesnames.get(i))){
-                    String temp = data.substring(data.indexOf(checkboxesnames.get(i))+checkboxesnames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+checkboxesnames.get(i)+colondash)+checkboxesnames.get(i).length()+colondash.length()+valueend.length());
                     checkBoxes.get(i).setChecked(Boolean.parseBoolean(temp.substring(0,temp.indexOf("/de"))));
                 }
             }
             for (int i = 0; i < edittextsnames.size(); i++) {
                 if(data.contains(edittextsnames.get(i))){
-                    String temp = data.substring(data.indexOf(edittextsnames.get(i))+edittextsnames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+edittextsnames.get(i)+colondash)+edittextsnames.get(i).length()+colondash.length());
                     editTexts.get(i).setText(temp.substring(0,temp.indexOf("/de")));
                 }
             }
             for (int i = 0; i < slidernames.size(); i++) {
                 if(data.contains(slidernames.get(i))){
-                    String temp = data.substring(data.indexOf(slidernames.get(i))+slidernames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+slidernames.get(i)+colondash)+slidernames.get(i).length()+colondash.length()+valueend.length());
+                    if(temp.equals("om//://0")){
+                        Log.e("stam",temp);
+                    }
                     sliders.get(i).setText(temp.substring(0,temp.indexOf("/de")));
-                    seekBars.get(i).setProgress(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                    try {
+                        seekBars.get(i).setProgress(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
+                    }catch (Exception e){}
                 }
             }
         }

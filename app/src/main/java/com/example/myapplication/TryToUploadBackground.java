@@ -1,17 +1,16 @@
 package com.example.myapplication;
 
+import android.app.IntentService;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -31,7 +30,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TryToUpload extends Service {
+/**
+ * An {@link IntentService} subclass for handling asynchronous task requests in
+ * a service on a separate handler thread.
+ * <p>
+ * <p>
+ * TODO: Customize class - update intent actions, extra parameters and static
+ * helper methods.
+ */
+public class TryToUploadBackground extends IntentService {
     private NotificationManager notificationManager;
     private NotificationCompat.Builder builder;
     private MediaPlayer mp1;
@@ -46,26 +53,33 @@ public class TryToUpload extends Service {
     private FirebaseAuth auth;
     int tocomplete;
     int completed;
+    // TODO: Rename actions, choose action names that describe tasks that this
+    // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
+    private static final String ACTION_FOO = "com.example.myapplication.action.FOO";
+    private static final String ACTION_BAZ = "com.example.myapplication.action.BAZ";
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        return null;
+    // TODO: Rename parameters
+    private static final String EXTRA_PARAM1 = "com.example.myapplication.extra.PARAM1";
+    private static final String EXTRA_PARAM2 = "com.example.myapplication.extra.PARAM2";
+
+    public TryToUploadBackground() {
+        super("TryToUploadBackground");
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+
         dataToUpload = new ArrayList<>();
         mp1 = MediaPlayer.create(this,R.raw.popo);
         mp1.setLooping(false);
         cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         try{
-        netInfo = cm.getActiveNetworkInfo();}catch (Exception e){
+            netInfo = cm.getActiveNetworkInfo();}catch (Exception e){
             Toast.makeText(this, "a network error has occured please contact supervisior error: "+e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-         builder = new NotificationCompat.Builder(this,"my_channel_01")
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        builder = new NotificationCompat.Builder(this,"my_channel_01")
                 .setSmallIcon(R.mipmap.ic_launcher_foreground)
                 .setContentTitle("upload scouting data")
                 .setLargeIcon(icon)
@@ -100,15 +114,44 @@ public class TryToUpload extends Service {
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w("FB", "signInAnonymously:failure", task.getException());
-                            Toast.makeText(TryToUpload.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
+                            Toast.makeText(TryToUploadBackground.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
+    /**
+     * Starts this service to perform action Foo with the given parameters. If
+     * the service is already performing a task this action will be queued.
+     *
+     * @see IntentService
+     */
+    // TODO: Customize helper method
+    public static void startActionFoo(Context context, String param1, String param2) {
+        Intent intent = new Intent(context, TryToUploadBackground.class);
+        intent.setAction(ACTION_FOO);
+        intent.putExtra(EXTRA_PARAM1, param1);
+        intent.putExtra(EXTRA_PARAM2, param2);
+        context.startService(intent);
+    }
+
+    /**
+     * Starts this service to perform action Baz with the given parameters. If
+     * the service is already performing a task this action will be queued.
+     *
+     * @see IntentService
+     */
+    // TODO: Customize helper method
+    public static void startActionBaz(Context context, String param1, String param2) {
+        Intent intent = new Intent(context, TryToUploadBackground.class);
+        intent.setAction(ACTION_BAZ);
+        intent.putExtra(EXTRA_PARAM1, param1);
+        intent.putExtra(EXTRA_PARAM2, param2);
+        context.startService(intent);
+    }
+
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    protected void onHandleIntent(Intent intent) {
         Log.e("service","started");
 
 
@@ -119,54 +162,53 @@ public class TryToUpload extends Service {
             Log.e("running?","turn");
             if(netInfo !=null){
 
-            if(netInfo.isConnected()){
+                if(netInfo.isConnected()){
 //                mp1.start();
-                Toast.makeText(this, "you have internet connection", Toast.LENGTH_SHORT).show();
-                String data="";
-                try{
-                FileInputStream fin = openFileInput("scoutersavedata.txt");
-                int c;
+                    String data="";
+                    try{
+                        FileInputStream fin = openFileInput("scoutersavedata.txt");
+                        int c;
 
-                while( (c = fin.read()) != -1){
-                    data = data + Character.toString((char)c);
-                }
+                        while( (c = fin.read()) != -1){
+                            data = data + Character.toString((char)c);
+                        }
 
-                    fin.close();} catch (Exception e) {
-                Toast.makeText(this, "an error has occured please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+                        fin.close();} catch (Exception e) {
+                        Toast.makeText(this, "an error has occured please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
 
-               builder.setContentText("uploading files to firebase");
+                    builder.setContentText("uploading files to firebase");
 
-                if(data.length()>0){
-                    int totalcharnum = 0;
-                    int originallength = data.length();
-                    String parsevalue = "";
-                    String parsename = "";
-                    String parsepath="";
-                    String autostart = "data:";
-                    String autoend = "/endauto/";
-                    String teleend = "/endtele/";
-                    String endgame = "/endgame/";
-                    while (data.length()>0){
+                    if(data.length()>0){
+                        int totalcharnum = 0;
+                        int originallength = data.length();
+                        String parsevalue = "";
+                        String parsename = "";
+                        String parsepath="";
+                        String autostart = "data:/de";
+                        String autoend = "/endauto/";
+                        String teleend = "/endtele/";
+                        String endgame = "/endgame/";
+                        while (data.length()>0){
 //                        mNotifyManager.notify(NOTIFICATION_ID,builder.build());
 
-                        parsepath = data.substring(0,data.indexOf(autostart));
+                            parsepath = data.substring(0,data.indexOf(autostart));
 
-                        Log.e("PATH",parsepath);
-                        addfielstofirebase(parsepath,data.substring(data.indexOf(autostart)+autostart.length(),data.indexOf(autoend)),"autonomous");
-                        Log.e("data given",data.substring(data.indexOf(autostart)+autostart.length(),data.indexOf(autoend)));
-                        addfielstofirebase(parsepath,data.substring(data.indexOf(autoend)+autoend.length(),data.indexOf(teleend)),"teleop");
-                        addfielstofirebase(parsepath,data.substring(data.indexOf(teleend)+teleend.length(),data.indexOf(endgame)),"summary");
-                        data = data.substring(data.indexOf(endgame)+endgame.length());
-                        totalcharnum=originallength - data.length();
+                            Log.e("PATH",parsepath);
+                            addfielstofirebase(parsepath,data.substring(data.indexOf(autostart)+autostart.length(),data.indexOf(autoend)),"autonomous");
+                            Log.e("data given",data.substring(data.indexOf(autostart)+autostart.length(),data.indexOf(autoend)));
+                            addfielstofirebase(parsepath,data.substring(data.indexOf(autoend)+autoend.length(),data.indexOf(teleend)),"teleop");
+                            addfielstofirebase(parsepath,data.substring(data.indexOf(teleend)+teleend.length(),data.indexOf(endgame)),"summary");
+                            data = data.substring(data.indexOf(endgame)+endgame.length());
+                            totalcharnum=originallength - data.length();
+                        }
+                        uploadDataToFirestore();
+                        didfinish = true;
+
                     }
-                    uploadDataToFirestore();
-                    didfinish = true;
+
 
                 }
-
-
-            }
             }else {
                 try{
                     netInfo = cm.getActiveNetworkInfo();}catch (Exception e){
@@ -174,14 +216,12 @@ public class TryToUpload extends Service {
                 }
             }
         }
-        return START_STICKY;
     }
-
     private void uploadDataToFirestore() {
         tocomplete = dataToUpload.size();
         for(ToUploadVar toUploadVar : dataToUpload){
             try{
-                db.collection(toUploadVar.getDatapath()).document(toUploadVar.getMode()).set(toUploadVar.getFirebasedat(),SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                db.collection(toUploadVar.getDatapath()).document(toUploadVar.getMode()).set(toUploadVar.getFirebasedat(), SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         completed++;
@@ -190,8 +230,8 @@ public class TryToUpload extends Service {
                             builder.setContentText("finished uploading");
                             notificationManager.notify(NOTIFICATION_ID, builder.build());
                         }else {
-                        builder.setProgress(tocomplete,completed,false);
-                        notificationManager.notify(NOTIFICATION_ID, builder.build());}
+                            builder.setProgress(tocomplete,completed,false);
+                            notificationManager.notify(NOTIFICATION_ID, builder.build());}
                     }
                 });
             }
@@ -203,9 +243,27 @@ public class TryToUpload extends Service {
         }
     }
 
+    /**
+     * Handle action Foo in the provided background thread with the provided
+     * parameters.
+     */
+    private void handleActionFoo(String param1, String param2) {
+        // TODO: Handle action Foo
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * Handle action Baz in the provided background thread with the provided
+     * parameters.
+     */
+    private void handleActionBaz(String param1, String param2) {
+        // TODO: Handle action Baz
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
     private  void addfielstofirebase(String datapath,String data2,String mode){
         String temp="";
         Map<String, Object> firebasedat = new HashMap<>();
+        String Beforenamesepr = "//b//";
         String nameseprator = "//://";
         String valueseprator = "/de";
         String name="";
@@ -232,14 +290,14 @@ public class TryToUpload extends Service {
                         firebasedat.put(name,1);
                     }else {
                         Log.e("value11",value);
-                    firebasedat.put(name,value);
+                        firebasedat.put(name,value);
                     }
                 }
 
             }
             ToUploadVar toUploadVar = new ToUploadVar(firebasedat,datapath,mode);
             dataToUpload.add(toUploadVar);
-            data2 = data2.substring(data2.indexOf(valueseprator)+valueseprator.length());
+            data2 = data2.substring(data2.indexOf(valueseprator)+valueseprator.length()+Beforenamesepr.length());
         }
 
     }
