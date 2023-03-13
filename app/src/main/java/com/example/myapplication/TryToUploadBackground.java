@@ -163,6 +163,7 @@ public class TryToUploadBackground extends IntentService {
             if(netInfo !=null){
 
                 if(netInfo.isConnected()){
+//                    Log.e(netInfo.getState());
 //                mp1.start();
                     String data="";
                     try{
@@ -185,7 +186,7 @@ public class TryToUploadBackground extends IntentService {
                         String parsevalue = "";
                         String parsename = "";
                         String parsepath="";
-                        String autostart = "data:/de";
+                        String autostart = "data:";
                         String autoend = "/endauto/";
                         String teleend = "/endtele/";
                         String endgame = "/endgame/";
@@ -193,7 +194,6 @@ public class TryToUploadBackground extends IntentService {
 //                        mNotifyManager.notify(NOTIFICATION_ID,builder.build());
 
                             parsepath = data.substring(0,data.indexOf(autostart));
-
                             Log.e("PATH",parsepath);
                             addfielstofirebase(parsepath,data.substring(data.indexOf(autostart)+autostart.length(),data.indexOf(autoend)),"autonomous");
                             Log.e("data given",data.substring(data.indexOf(autostart)+autostart.length(),data.indexOf(autoend)));
@@ -263,11 +263,11 @@ public class TryToUploadBackground extends IntentService {
     private  void addfielstofirebase(String datapath,String data2,String mode){
         String temp="";
         Map<String, Object> firebasedat = new HashMap<>();
-        String Beforenamesepr = "//b//";
         String nameseprator = "//://";
         String valueseprator = "/de";
         String name="";
         String value="";
+        Log.e("data",data2);
         while (data2.length()>0){
             name = data2.substring(0,data2.indexOf(nameseprator));
             value = data2.substring(data2.indexOf(nameseprator)+nameseprator.length(),data2.indexOf(valueseprator));
@@ -297,7 +297,7 @@ public class TryToUploadBackground extends IntentService {
             }
             ToUploadVar toUploadVar = new ToUploadVar(firebasedat,datapath,mode);
             dataToUpload.add(toUploadVar);
-            data2 = data2.substring(data2.indexOf(valueseprator)+valueseprator.length()+Beforenamesepr.length());
+            data2 = data2.substring(data2.indexOf(valueseprator)+valueseprator.length());
         }
 
     }

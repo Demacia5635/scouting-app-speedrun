@@ -334,7 +334,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
             }
             for (int i = 0; i < edittextsnames.size(); i++) {
                 if(data.contains(edittextsnames.get(i))){
-                    String temp = data.substring(data.indexOf(valueend+edittextsnames.get(i)+colondash)+edittextsnames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+edittextsnames.get(i)+colondash)+edittextsnames.get(i).length()+colondash.length()+valueend.length());
                     editTexts.get(i).setText(temp.substring(0,temp.indexOf("/de")));
                 }
             }

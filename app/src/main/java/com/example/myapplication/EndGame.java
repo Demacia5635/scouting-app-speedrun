@@ -94,7 +94,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
         String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
-        String mode = "Summery";
+        String mode = "Summary";
         match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
         prev = findViewById(R.id.prevtele);
         next = findViewById(R.id.nextauto);
@@ -359,7 +359,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
             }
             for (int i = 0; i < edittextsnames.size(); i++) {
                 if(data.contains(edittextsnames.get(i))){
-                    String temp = data.substring(data.indexOf(valueend+edittextsnames.get(i)+colondash)+edittextsnames.get(i).length()+colondash.length());
+                    String temp = data.substring(data.indexOf(valueend+edittextsnames.get(i)+colondash)+edittextsnames.get(i).length()+colondash.length()+valueend.length());
                     editTexts.get(i).setText(temp.substring(0,temp.indexOf("/de")));
                 }
             }

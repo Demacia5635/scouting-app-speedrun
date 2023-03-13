@@ -128,13 +128,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View view) {
-        Toast.makeText(this, "your click has been registered please wait while we check your login info", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "loading please qait...", Toast.LENGTH_SHORT).show();
         for (int i = 0; i < 6; i++) {
             writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString());
         }
     }
     private void writefielddata(String id,String firstname,String lastname){
-        db.collection("seasons/2023/competitions/ISDE2/Quals")
+        db.collection("seasons/2023/competitions/ISDE3/Quals")
                 .whereArrayContains(id,firstname)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -185,13 +185,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             intent.putExtra("index",0);
 
                             startActivity(intent);}else  {
-                                Toast.makeText(LoginActivity.this, "no such user exsits", Toast.LENGTH_SHORT).show();
                             }
                             }else {
 
-                                Toast.makeText(LoginActivity.this, "no such user exsits", Toast.LENGTH_SHORT).show();
                             }
                         }else {
+
                             Toast.makeText(LoginActivity.this, "no such user exsits", Toast.LENGTH_SHORT).show();
                         }
                     }
