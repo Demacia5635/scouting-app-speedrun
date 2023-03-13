@@ -128,7 +128,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View view) {
-        Toast.makeText(this, "loading please qait...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "loading please wait...", Toast.LENGTH_SHORT).show();
         for (int i = 0; i < 6; i++) {
             writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString());
         }
