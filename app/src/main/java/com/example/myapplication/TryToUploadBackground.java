@@ -153,7 +153,7 @@ public class TryToUploadBackground extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.e("service","started");
-
+        tocomplete = 0;
 
 
         notificationManager.notify(NOTIFICATION_ID, builder.build());
@@ -219,6 +219,7 @@ public class TryToUploadBackground extends IntentService {
     }
     private void uploadDataToFirestore() {
         tocomplete = dataToUpload.size();
+
         for(ToUploadVar toUploadVar : dataToUpload){
             try{
                 db.collection(toUploadVar.getDatapath()).document(toUploadVar.getMode()).set(toUploadVar.getFirebasedat(), SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {

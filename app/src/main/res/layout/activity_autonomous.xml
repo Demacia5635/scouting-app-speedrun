@@ -7,54 +7,87 @@
     android:orientation="vertical"
     android:gravity="center_horizontal"
     tools:context=".AutonomousActivity">
+
+    <TextView
+        android:id="@+id/qualauto3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:textSize="30dp" />
     <LinearLayout
-        android:paddingTop="50dp"
         android:layout_width="match_parent"
-        android:weightSum="5"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="5dp"
+        android:weightSum="5">
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/prevendgame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="previous" />
+
         <TextView
-            android:layout_weight="2.5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_weight="2.5" />
+
+        <Button
             android:id="@+id/fromautotoquals"
-            android:text="quals"/>
-        <TextView
-            android:layout_weight="2.5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" next   "
-            android:id="@+id/nextteleop"/>
+            android:text="quals" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2.5" />
+
+        <Button
+            android:id="@+id/nextteleop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" next   " />
 
 
     </LinearLayout>
-
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="5dp"
+        android:weightSum="5">
     <TextView
-        android:textSize="20dp"
+        android:id="@+id/qualauto1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/qualauto"
-        />
+        android:paddingTop="10dp"
+        android:textSize="20dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="5"/>
+    <TextView
+        android:id="@+id/qualauto2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:textSize="20dp" />
+    </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:paddingTop="10dp">
+
         <LinearLayout
-            android:layout_width="match_parent"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
             android:id="@+id/linearlayout"
-            android:layout_height="match_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
         </LinearLayout>
     </ScrollView>

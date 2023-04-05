@@ -38,6 +38,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.w3c.dom.Text;
+
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -80,14 +82,18 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
        }
         gotoquals = findViewById(R.id.fromautotoquals);
         index = intent.getExtras().getInt("index");
-        TextView match = findViewById(R.id.qualauto);
+        TextView mode = findViewById(R.id.qualauto3);
+        TextView team = findViewById(R.id.qualauto2);
+        TextView match = findViewById(R.id.qualauto1);
        String qualssubpath = paths.get(index);
        String quals = "Quals";
        qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-       String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
-       String mode = "autonomous";
-       match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
+       String teamS = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
+       String modeS = "autonomous";
+       match.setText(qualssubpath);
+       mode.setText(modeS);
+       team.setText("Team: "+teamS);
        prev = findViewById(R.id.prevendgame);
        if(index == 0){
            prev.setText("Logout");

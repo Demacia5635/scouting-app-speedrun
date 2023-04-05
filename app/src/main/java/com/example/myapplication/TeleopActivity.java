@@ -71,14 +71,18 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
         }
         gotoquals = findViewById(R.id.fromteletoquals);
         index = intent.getExtras().getInt("index");
-        TextView match = findViewById(R.id.qualtele);
+        TextView mode = findViewById(R.id.qualtele3);
+        TextView team = findViewById(R.id.qualtele2);
+        TextView match = findViewById(R.id.qualtele1);
         String qualssubpath = paths.get(index);
         String quals = "Quals";
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-        String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
-        String mode = "teleop";
-        match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
+        String teamS = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
+        String modeS = "Tele-Op";
+        match.setText(qualssubpath);
+        mode.setText(modeS);
+        team.setText("Team: "+teamS);
         prev = findViewById(R.id.prevauto);
         next = findViewById(R.id.nextendgame);
         gotoquals.setOnClickListener(this);

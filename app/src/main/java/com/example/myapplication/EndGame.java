@@ -88,14 +88,18 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
 
         Log.e("SIZE",paths.size()+"");
         index = intent.getExtras().getInt("index");
-        TextView match = findViewById(R.id.qualendgame);
+        TextView mode = findViewById(R.id.qualendgame1);
+        TextView team = findViewById(R.id.qualendgame2);
+        TextView match = findViewById(R.id.qualendgame1);
         String qualssubpath = paths.get(index);
         String quals = "Quals";
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-        String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
-        String mode = "Summary";
-        match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
+        String teamS = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
+        String modeS = "Summary";
+        match.setText(qualssubpath);
+        mode.setText(modeS);
+        team.setText("Team: "+teamS);
         prev = findViewById(R.id.prevtele);
         next = findViewById(R.id.nextauto);
         Log.e("INDEX",index+"");

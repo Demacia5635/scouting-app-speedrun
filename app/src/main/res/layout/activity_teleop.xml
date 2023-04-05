@@ -4,60 +4,91 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:layout_gravity="left"
     android:gravity="center_horizontal"
+    android:orientation="vertical"
     tools:context=".TeleopActivity">
 
-
+    <TextView
+        android:id="@+id/qualtele3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:textSize="30dp" />
     <LinearLayout
-        android:paddingTop="100dp"
         android:layout_width="match_parent"
-        android:weightSum="5"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="5dp"
+        android:weightSum="5">
 
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/prevauto"
-            android:text="previous" />
-        <TextView
-            android:layout_weight="2.5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/fromteletoquals"
-            android:text="quals"/>
+            android:text="previous" />
+
         <TextView
-            android:layout_weight="2.5"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="2.5" />
 
         <Button
+            android:id="@+id/fromteletoquals"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" next   "
-            android:id="@+id/nextendgame"/>
+            android:text="quals" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2.5" />
+
+        <Button
+            android:id="@+id/nextendgame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" next   " />
 
 
     </LinearLayout>
 
-    <TextView
-        android:textSize="20dp"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/qualtele"
-        />
+        android:layout_gravity="left"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="5dp"
+        android:weightSum="5">
+        <TextView
+            android:id="@+id/qualtele1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:textSize="20dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="5"/>
+        <TextView
+            android:id="@+id/qualtele2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:textSize="20dp" />
+    </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <LinearLayout
+            android:id="@+id/linearlayoutteled"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:id="@+id/linearlayoutteled"
-            android:gravity="center_horizontal">
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
         </LinearLayout>
 

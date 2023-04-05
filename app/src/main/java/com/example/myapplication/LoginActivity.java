@@ -134,7 +134,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
     private void writefielddata(String id,String firstname,String lastname){
-        db.collection("seasons/2023/competitions/ISDE3/Quals")
+        db.collection("seasons/2023/competitions/ISCMP/Quals")
                 .whereArrayContains(id,firstname)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -170,15 +170,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
                                 Log.e("trin",qualssubpath);
                                 PathToAddbefore.add(path.substring(0,path.indexOf(qualssubpath)));
-                                PathToAddAfter.add(path.substring(path.indexOf(qualssubpath)+qualssubpath.length()));
+                                PathToAddAfter.add(path.substring(path.indexOf(qualssubpath)));
                                 qualssubpath = qualssubpath.substring(qualssubpath.indexOf("Qual")+quals.length()-1);
                                 sorting.add(Integer.parseInt(qualssubpath));
                                 qualssubpath = path;
                             }
                             Collections.sort(sorting);
                             for (int i = 0; i < sorting.size(); i++) {
-                                Log.e("value",PathToAddbefore.get(i)+"Qual"+sorting.get(i)+PathToAddAfter.get(i));
-                                paths.set(i,PathToAddbefore.get(i)+"Qual"+sorting.get(i)+PathToAddAfter.get(i));
+                                Log.e("FUCK",sorting.get(i)+"");
+                                for (String quick: PathToAddAfter) {
+                                    if (quick.contains("Qual"+sorting.get(i)+"/")){
+                                        Log.e("value",PathToAddbefore.get(i)+quick);
+                                        paths.set(i,PathToAddbefore.get(i)+quick);
+                                    }
+                                }
+
                             }
                             intent.putExtra("paths",paths);
                             Log.e("patjo",paths.size()+"");
