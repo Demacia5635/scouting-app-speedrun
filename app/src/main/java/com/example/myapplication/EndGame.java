@@ -23,15 +23,18 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -51,8 +54,10 @@ import java.util.Map;
 import android.os.Bundle;
 import android.widget.Toast;
 
-public class EndGame extends AppCompatActivity implements View.OnClickListener {
+public class EndGame extends AppCompatActivity implements View.OnClickListener, ViewTreeObserver.OnScrollChangedListener {
     LinearLayout linearLayout;
+    String varToLoad , mode;
+
     ArrayList<String> numbernames = new ArrayList<>();
     ArrayList<String> slidernames = new ArrayList<>();
     ArrayList<SeekBar> seekBars = new ArrayList<>();
@@ -65,6 +70,8 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
     ArrayList<String> paths = new ArrayList<String>();
     int index;
     Button prev,next,gotoquals;
+    ScrollView scrollView;
+    Boolean didEND;
     Boolean isdone = false;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String databegin = "/endtele/";
@@ -85,12 +92,21 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
             paths.add(path);
         }
         gotoquals = findViewById(R.id.fromendgametoquals);
-
+        scrollView = findViewById(R.id.SummaryScrollView);
         Log.e("SIZE",paths.size()+"");
         index = intent.getExtras().getInt("index");
         TextView match = findViewById(R.id.qualendgame);
         String qualssubpath = paths.get(index);
-        String quals = "Quals";
+        mode = intent.getExtras().getString("mode");
+        varToLoad ="";
+        if(mode.equals("Practices")){
+            varToLoad = "Practice";
+        } else if (mode.equals("Quals")) {
+            varToLoad = "Qual";
+        } else if (mode.equals("Playoffs")) {
+            varToLoad="Match";
+        }
+        String quals = mode;
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
         String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
@@ -103,9 +119,13 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
             next.setText("submit");
             isdone = true;
         }
+        didEND=false;
+
         gotoquals.setOnClickListener(this);
         prev.setOnClickListener(this);
         next.setOnClickListener(this);
+        scrollView.getViewTreeObserver().addOnScrollChangedListener(this);
+
         auth = FirebaseAuth.getInstance();
     }
 
@@ -139,8 +159,15 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
                     DocumentSnapshot document = task.getResult();
                     if(document.exists()){
                         Map<String,Object> params = document.getData();
+                        ArrayList<Map<String,Object>> FilteredByWeight = new ArrayList<>();
                         for(Map.Entry<String, Object> entry : params.entrySet()){
-                            addviewfrommap((Map<String, Object>) entry.getValue());
+                            FilteredByWeight.add(((Map<String,Object>) entry.getValue()));
+                        }
+                        for(Map.Entry<String, Object> entry : params.entrySet()){
+                            FilteredByWeight.set(Integer.parseInt(((Map<String, Object>) entry.getValue()).get("weight").toString())-1,((Map<String,Object>) entry.getValue()));
+                        }
+                        for (Map<String,Object> data:FilteredByWeight) {
+                            addviewfrommap((data));
                         }
                         getpreviousdata();
 
@@ -403,9 +430,16 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         String pathwithdata = paths.get(index).substring(0,dataindex)+datastring+paths.get(index).substring(paths.get(index).indexOf(dataEnd));
         paths.set(index,pathwithdata);
         writeToInternal("scoutersavedata.txt");
-        if(view == next){
-            stopService(new Intent(this,TryToUploadBackground.class));
-            startService(new Intent(this,TryToUploadBackground.class));
+        if(view == next){ DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int height = displayMetrics.heightPixels;
+            Log.e("screenheight",height+"");
+            Log.e("ypp","ypal");
+            Log.e("scrollheight", linearLayout.getHeight()+"");
+            if(didEND || height>=linearLayout.getHeight()){
+                Intent serviceINtenet = new Intent(this,TryToUploadBackground.class);
+                serviceINtenet.putExtra("path",paths.get(index));
+            startService(serviceINtenet);
             if(!isdone){
                 index++;
             Intent intent = new Intent(this,AutonomousActivity.class);
@@ -413,6 +447,8 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
             intent.putExtra("index",index);
             startActivity(intent);}else {
 
+            }}else {
+                Toast.makeText(this, "please scroll to the end of the screen", Toast.LENGTH_SHORT).show();
             }
         } else if (view==prev) {
             Intent intent = new Intent(this,TeleopActivity.class);
@@ -422,6 +458,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
         }else if(view == gotoquals){
             Intent intent = new Intent(EndGame.this,RecycleAct.class);
             intent.putExtra("paths",paths);
+            intent.putExtra("mode",mode);
             startActivity(intent);
         }
 
@@ -432,12 +469,22 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener {
             thingsTosave += thingtoSave;
         }
         try {
-            FileOutputStream fOut = openFileOutput("scoutersavedata.txt", Context.MODE_PRIVATE);
+            FileOutputStream fOut = openFileOutput(mode+"scoutersavedata.txt", Context.MODE_PRIVATE);
             fOut.write(thingsTosave.getBytes());
             fOut.close();
         }catch (Exception e){
             Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
         }
 
+    }
+
+    @Override
+    public void onScrollChanged() {
+        View view = scrollView.getChildAt(scrollView.getChildCount() - 1);
+        int topDetector = scrollView.getScrollY();
+        int bottomDetector = view.getBottom() - (scrollView.getHeight() + scrollView.getScrollY());
+        if(bottomDetector == 0 ){
+            didEND = true;
+        }
     }
 }

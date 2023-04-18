@@ -16,15 +16,19 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.NumberPicker;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,18 +47,21 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class AutonomousActivity extends AppCompatActivity implements View.OnClickListener {
+public class AutonomousActivity extends AppCompatActivity implements View.OnClickListener, ViewTreeObserver.OnScrollChangedListener {
     LinearLayout linearLayout;
+    String varToLoad , mode;
     ArrayList<String> numbernames = new ArrayList<>();
     ArrayList<String> slidernames = new ArrayList<>();
     ArrayList<String> edittextsnames = new ArrayList<>();
     ArrayList<String> checkboxesnames = new ArrayList<>();
+
     ArrayList<EditText> numberInputs = new ArrayList<>();
     ArrayList<SeekBar> seekBars = new ArrayList<>();
     ArrayList<TextView> sliders = new ArrayList<>();
     ArrayList<EditText> editTexts = new ArrayList<>();
     ArrayList<CheckBox> checkBoxes = new ArrayList<>();
-
+    ScrollView scrollView;
+    Boolean didEND;
     ArrayList<String> paths = new ArrayList<String>();
     int index;
     boolean isloogedout = false;
@@ -74,15 +81,25 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
         linearLayout = findViewById(R.id.linearlayout);
         addViewsToLinearLayout();
         Intent intent = getIntent();
-
+        scrollView = findViewById(R.id.autoScrollView);
        for(String path : intent.getExtras().getStringArrayList("paths")){
            paths.add(path);
        }
+       mode = "practices";
+       mode = intent.getExtras().getString("mode");
+         varToLoad ="";
+        if(mode.equals("Practices")){
+            varToLoad = "Practice";
+        } else if (mode.equals("Quals")) {
+            varToLoad = "Qual";
+        } else if (mode.equals("Playoffs")) {
+            varToLoad="Match";
+        }
         gotoquals = findViewById(R.id.fromautotoquals);
         index = intent.getExtras().getInt("index");
         TextView match = findViewById(R.id.qualauto);
        String qualssubpath = paths.get(index);
-       String quals = "Quals";
+       String quals = mode;
        qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
        String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
@@ -90,13 +107,16 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
        match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
        prev = findViewById(R.id.prevendgame);
        if(index == 0){
-           prev.setText("Logout");
+           prev.setText("Logout/reLoadData");
            isloogedout = true;
        }
+        didEND=false;
+
        next = findViewById(R.id.nextteleop);
         gotoquals.setOnClickListener(this);
         prev.setOnClickListener(this);
        next.setOnClickListener(this);
+       scrollView.getViewTreeObserver().addOnScrollChangedListener(this);
         auth = FirebaseAuth.getInstance();
     }
 
@@ -130,10 +150,18 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
                     DocumentSnapshot document = task.getResult();
                     if(document.exists()){
                         Map<String,Object> params = document.getData();
+                        ArrayList<Map<String,Object>> FilteredByWeight = new ArrayList<>();
                         for(Map.Entry<String, Object> entry : params.entrySet()){
-                            addviewfrommap((Map<String, Object>) entry.getValue());
+                            FilteredByWeight.add(((Map<String,Object>) entry.getValue()));
+                        }
+                        for(Map.Entry<String, Object> entry : params.entrySet()){
+                            FilteredByWeight.set(Integer.parseInt(((Map<String, Object>) entry.getValue()).get("weight").toString())-1,((Map<String,Object>) entry.getValue()));
+                        }
+                        for (Map<String,Object> data:FilteredByWeight) {
+                            addviewfrommap((data));
                         }
                         getpreviousdata();
+
                     }
                 }
             }
@@ -351,22 +379,24 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
         String pathwithdata = paths.get(index).substring(0,dataindex)+datastring+paths.get(index).substring(paths.get(index).indexOf(dataEnd));
         paths.set(index,pathwithdata);
         writeToInternal("scoutersavedata.txt");
-        if(view == next){
+        if(view == next){ DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int height = displayMetrics.heightPixels;
+            Log.e("screenheight",height+"");
+            Log.e("ypp","ypal");
+            Log.e("scrollheight", linearLayout.getHeight()+"");
+            if(didEND || height >= linearLayout.getHeight()){
             Intent intent = new Intent(AutonomousActivity.this,TeleopActivity.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
-            startActivity(intent);
+            intent.putExtra("mode",mode);
+            startActivity(intent);}else {
+                Toast.makeText(this, "please scroll to the end of the screen", Toast.LENGTH_SHORT).show();
+            }
         } else if (view==prev) {
             if(isloogedout){
                 Intent intent = new Intent(AutonomousActivity.this,LoginActivity.class);
-                try {
-                    FileOutputStream fOut = openFileOutput("scoutersavedata.txt", Context.MODE_PRIVATE);
-                    String thingsToDelete = "";
-                    fOut.write(thingsToDelete.getBytes());
-                    fOut.close();
-                }catch (Exception e){
-                    Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
-                }
+                intent.putExtra("reloaddata",true);
                 startActivity(intent);
             }else {
             index--;
@@ -377,6 +407,7 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
         }else if(view == gotoquals){
             Intent intent = new Intent(AutonomousActivity.this,RecycleAct.class);
             intent.putExtra("paths",paths);
+            intent.putExtra("mode",mode);
             startActivity(intent);
         }
     }
@@ -434,12 +465,22 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
             thingsTosave += thingtoSave;
         }
         try {
-            FileOutputStream fOut = openFileOutput("scoutersavedata.txt", Context.MODE_PRIVATE);
+            FileOutputStream fOut = openFileOutput(mode+"scoutersavedata.txt", Context.MODE_PRIVATE);
             fOut.write(thingsTosave.getBytes());
             fOut.close();
         }catch (Exception e){
             Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
         }
 
+    }
+
+    @Override
+    public void onScrollChanged() {
+        View view = scrollView.getChildAt(scrollView.getChildCount() - 1);
+        int topDetector = scrollView.getScrollY();
+        int bottomDetector = view.getBottom() - (scrollView.getHeight() + scrollView.getScrollY());
+        if(bottomDetector == 0 ){
+            didEND = true;
+        }
     }
 }

@@ -25,7 +25,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -165,19 +167,28 @@ public class TryToUploadBackground extends IntentService {
                 if(netInfo.isConnected()){
 //                    Log.e(netInfo.getState());
 //                mp1.start();
-                    String data="";
+                    StringBuilder sb = new StringBuilder();
+
                     try{
                         FileInputStream fin = openFileInput("scoutersavedata.txt");
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fin,"UTF-8"));
                         int c;
-
-                        while( (c = fin.read()) != -1){
-                            data = data + Character.toString((char)c);
+                        String line = null;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            sb.append(line);
                         }
 
                         fin.close();} catch (Exception e) {
                         Toast.makeText(this, "an error has occured please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
 
+                    String data = sb.toString();
+                    Log.e("yoooo",data);
+                    data = data.substring(data.indexOf(intent.getExtras().getString("path")),data.length()-1);
+                    String endgame = "/endgame/";
+
+                    data = data.substring(0,data.indexOf(endgame)+endgame.length());
+                    Log.e("filtereddata",data);
                     builder.setContentText("uploading files to firebase");
 
                     if(data.length()>0){
@@ -189,7 +200,6 @@ public class TryToUploadBackground extends IntentService {
                         String autostart = "data:";
                         String autoend = "/endauto/";
                         String teleend = "/endtele/";
-                        String endgame = "/endgame/";
                         while (data.length()>0){
 //                        mNotifyManager.notify(NOTIFICATION_ID,builder.build());
 
