@@ -102,7 +102,9 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
        String quals = mode;
        qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-       String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
+       String subteam = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length());
+       String disCode="ARPKY";
+       String team = subteam.substring(0,subteam.indexOf(disCode));
        String mode = "autonomous";
        match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
        prev = findViewById(R.id.prevendgame);
@@ -397,12 +399,14 @@ public class AutonomousActivity extends AppCompatActivity implements View.OnClic
             if(isloogedout){
                 Intent intent = new Intent(AutonomousActivity.this,LoginActivity.class);
                 intent.putExtra("reloaddata",true);
+
                 startActivity(intent);
             }else {
             index--;
             Intent intent = new Intent(AutonomousActivity.this,EndGame.class);
             intent.putExtra("paths",paths);
-            intent.putExtra("index",index);
+                intent.putExtra("mode",mode);
+                intent.putExtra("index",index);
             startActivity(intent);}
         }else if(view == gotoquals){
             Intent intent = new Intent(AutonomousActivity.this,RecycleAct.class);

@@ -93,7 +93,9 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
         String quals = mode;
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-        String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
+        String subteam = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length());
+        String disCode="ARPKY";
+        String team = subteam.substring(0,subteam.indexOf(disCode));
         String mode = "teleop";
         match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
         prev = findViewById(R.id.prevauto);
@@ -145,6 +147,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
                         for (Map<String,Object> data:FilteredByWeight) {
                             addviewfrommap((data));
                         }
+                        getpreviousdata();
 
                     }
                 }
@@ -414,6 +417,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
             Intent intent = new Intent(TeleopActivity.this,EndGame.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
+            intent.putExtra("mode",mode);
             startActivity(intent);}else {
                 Toast.makeText(this, "please scroll to the end of the screen", Toast.LENGTH_SHORT).show();
 
@@ -422,6 +426,7 @@ public class TeleopActivity extends AppCompatActivity implements View.OnClickLis
             Intent intent = new Intent(TeleopActivity.this,AutonomousActivity.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
+            intent.putExtra("mode",mode);
             startActivity(intent);
         }else if(view == gotoquals){
             Intent intent = new Intent(TeleopActivity.this,RecycleAct.class);

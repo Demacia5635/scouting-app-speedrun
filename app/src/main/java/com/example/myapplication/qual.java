@@ -13,7 +13,9 @@ public class qual {
         String quals = this.mode;
         path = path.substring(path.indexOf(quals)+quals.length()+1);
         qualsName = path.substring(0,path.indexOf("/"));
-        teamNumber = path.substring(path.indexOf(qualsName)+qualsName.length()+1,path.indexOf(qualsName)+qualsName.length()+5);
+        String  subteamNumber = path.substring(path.indexOf(qualsName)+qualsName.length()+1,path.indexOf(qualsName)+qualsName.length());
+        String disCode="ARPKY";
+        teamNumber = subteamNumber.substring(0,subteamNumber.indexOf(disCode));
         index++;
     }
 

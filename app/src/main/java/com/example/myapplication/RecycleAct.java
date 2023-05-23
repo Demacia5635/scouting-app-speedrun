@@ -60,6 +60,7 @@ public class RecycleAct extends AppCompatActivity implements AdapterView.OnItemC
         Intent intent = new Intent(RecycleAct.this,AutonomousActivity.class);
         intent.putExtra("paths",paths);
         intent.putExtra("index",i);
+        intent.putExtra("mode",mode);
         startActivity(intent);
 
     }

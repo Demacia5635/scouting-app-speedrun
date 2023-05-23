@@ -162,15 +162,14 @@ public class TryToUploadBackground extends IntentService {
 
         while (!didfinish){
             Log.e("running?","turn");
-            if(netInfo !=null){
 
-                if(netInfo.isConnected()){
+                if(netInfo!=null &&  netInfo.isConnectedOrConnecting()){
 //                    Log.e(netInfo.getState());
 //                mp1.start();
                     StringBuilder sb = new StringBuilder();
 
                     try{
-                        FileInputStream fin = openFileInput("scoutersavedata.txt");
+                        FileInputStream fin = openFileInput(intent.getExtras().getString("mode")+"scoutersavedata.txt");
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fin,"UTF-8"));
                         int c;
                         String line = null;
@@ -219,7 +218,7 @@ public class TryToUploadBackground extends IntentService {
 
 
                 }
-            }else {
+            else {
                 try{
                     netInfo = cm.getActiveNetworkInfo();}catch (Exception e){
                     Toast.makeText(this, "a network error has occured please contact supervisior error: "+e.getMessage(), Toast.LENGTH_SHORT).show();

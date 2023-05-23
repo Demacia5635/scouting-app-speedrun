@@ -61,10 +61,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         thingsTosave.put("Practices","");
         thingsTosave.put("Quals","");
         thingsTosave.put("Playoffs","");
-        String mode = "Practices";
+        String mode = "Quals";
         try {
             reloaddata = intent2.getExtras().getBoolean("reloaddata",false);
-            mode = intent2.getExtras().getString("mode");
+            Log.e("mode:",mode);
+            mode = intent2.getExtras().getString("mode","Quals");
         }catch (Exception e){
 
         }
@@ -110,8 +111,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
             Intent intent = new Intent(LoginActivity.this,AutonomousActivity.class);
             ArrayList<Integer> sorting = new ArrayList<Integer>();
-            ArrayList<String> PathToAddbefore=new ArrayList<>();
-            ArrayList<String> PathToAddAfter=new ArrayList<String>();
+            Map<String,String> toPaths= new HashMap<>();
             for (String path:paths) {
                 Log.e("value before",path);
                 String qualssubpath = path;
@@ -126,21 +126,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         String asd ="asds";
                         asd.length();
                     }
-                    PathToAddbefore.add(path.substring(0,path.indexOf(qualssubpath)));
-                    PathToAddAfter.add(path.substring(path.indexOf(qualssubpath)));
+                    toPaths.put(qualssubpath,path);
                     qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length());
                     sorting.add(Integer.parseInt(qualssubpath));
                     qualssubpath = path;}
             }
             Collections.sort(sorting);
             for (int i = 0; i < sorting.size(); i++) {
-                Log.e("value",PathToAddbefore.get(i)+varToLoad+sorting.get(i)+PathToAddAfter.get(i));
-                for (String quick: PathToAddAfter) {
-                    if (quick.contains(varToLoad+sorting.get(i)+"/")){
-                        Log.e("value",PathToAddbefore.get(i)+quick);
-                        paths.set(i,PathToAddbefore.get(i)+quick);
-                    }
-                }
+                Log.e("value",toPaths.get(varToLoad+sorting.get(i)));
+                paths.add(toPaths.get(varToLoad+sorting.get(i)));
+
             }
             Log.e("yellow","Strat");
             intent.putExtra("paths",paths);
@@ -195,21 +190,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }catch (Exception e){
                 Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
             }
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i <6; i++) {
 
             writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Playoffs",false);
-            writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Quals",false);
-            writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Practices",true);
+            writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Quals",true);
+//            writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Practices",true);
 
         }} else if (view.equals(reloadata)) {
             for (int i = 0; i < 6; i++) {
-                reLoadfielddata(i+"",firstname.getText().toString(),lastname.getText().toString());
+                reLoadfielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Playoffs",false);
+                reLoadfielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Quals",false);
+                reLoadfielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Practices",true);
             }
         }
     }
     private void writefielddata(String id,String firstname,String lastname,String mode,boolean last){
         Log.e("mode",mode);
-        db.collection("seasons/2023/competitions/ISDE3/"+mode)
+        db.collection("seasons/2023/competitions/ARPKY/"+mode)
                 .whereArrayContains(id,firstname)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -236,45 +233,39 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                     writeToInternal("datapaths.txt",document.getReference().getPath()+"/"+document.getString(id+"-path"),mode);
 
                                 }else {
-
+//                                    Log.e("rejected",document.getReference().getPath()+"/"+document.getString(id+"-path")+"data:/endauto//endtele//endgame/");
                                 }
 
                             }
                             if(auth){
                             Intent intent = new Intent(LoginActivity.this,AutonomousActivity.class);
                             ArrayList<Integer> sorting = new ArrayList<Integer>();
-                            ArrayList<String> PathToAddbefore=new ArrayList<>();
-                            ArrayList<String> PathToAddAfter=new ArrayList<String>();
+                                Map<String,String> toPaths= new HashMap<>();
                                 for (String path:paths) {
                                     Log.e("value before",path);
                                     String qualssubpath = path;
                                     String quals = varToLoad;
                                     if(qualssubpath.indexOf(mode)!=-1){
-                                    qualssubpath = qualssubpath.substring(qualssubpath.indexOf(mode)+mode.length()+1);
-                                    Log.e("WTF",quals+" space "+ path);
-                                    Log.e("why",qualssubpath);
-                                    qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-                                    Log.e("trin",qualssubpath);
-                                    if(qualssubpath.equals("023")||qualssubpath.equals("ns")){
-                                        String asd ="asds";
-                                        asd.length();
-                                    }
-                                    PathToAddbefore.add(path.substring(0,path.indexOf(qualssubpath)));
-                                    PathToAddAfter.add(path.substring(path.indexOf(qualssubpath)));
-                                    qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length());
-                                    sorting.add(Integer.parseInt(qualssubpath));
-                                    qualssubpath = path;}
+                                        qualssubpath = qualssubpath.substring(qualssubpath.indexOf(mode)+mode.length()+1);
+                                        Log.e("WTF",quals+" space "+ path);
+                                        if(path.contains("13/")){
+                                            Log.e("fpund","it");
+                                        }
+                                        Log.e("why",qualssubpath);
+                                        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
+                                        Log.e("trin",qualssubpath);
+                                        toPaths.put(qualssubpath,path);
+                                        qualssubpath = qualssubpath.substring(qualssubpath.indexOf(varToLoad)+varToLoad.length());
+                                        sorting.add(Integer.parseInt(qualssubpath));
+                                        qualssubpath = path;}
                                 }
                                 Collections.sort(sorting);
-                            for (int i = 0; i < sorting.size(); i++) {
-                                Log.e("value",PathToAddbefore.get(i)+varToLoad+sorting.get(i)+PathToAddAfter.get(i));
-                                for (String quick: PathToAddAfter) {
-                                    if (quick.contains(varToLoad+sorting.get(i)+"/")){
-                                        Log.e("value",PathToAddbefore.get(i)+quick);
-                                        paths.set(i,PathToAddbefore.get(i)+quick);
-                                    }
+                                for (int i = 0; i < sorting.size(); i++) {
+                                    Log.e("value2",varToLoad+sorting.get(i));
+                                    Log.e("value",toPaths.get(varToLoad+sorting.get(i)));
+                                    paths.set(i,toPaths.get(varToLoad+sorting.get(i)));
+
                                 }
-                            }
 
                             if(last){ intent.putExtra("paths",paths);
                                 Log.e("patjo",paths.size()+"");
@@ -283,7 +274,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             startActivity(intent);}}else  {
                             }
                             }else {
-                                paths.clear();
                             }
                         }else {
 
@@ -311,20 +301,38 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
 
     }
-    private void reLoadfielddata(String id,String firstname,String lastname){
+    private void reLoadfielddata(String id,String firstname,String lastname,String mode,boolean last){
 
-        db.collection("seasons/2023/competitions/ISDE3/Quals")
+        db.collection("seasons/2023/competitions/ARPKY/"+mode)
                 .whereArrayContains(id,firstname)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        String varToLoad ="";
+                        if(mode.equals("Practices")){
+                            varToLoad = "Practice";
+                        } else if (mode.equals("Quals")) {
+                            varToLoad = "Qual";
+                        } else if (mode.equals("Playoffs")) {
+                            varToLoad="Match";
+                        }
                         Boolean auth = false;
                         String overalldata = "";
                         String endgame = "/endgame/";
-                        for (String path: paths) {
-                            overalldata+=path;
+                        StringBuilder sb = new StringBuilder();
+                        try{
+                            FileInputStream fin = openFileInput(mode+"scoutersavedata.txt");
+                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fin,"UTF-8"));
+                            int c;
+                            String line = null;
+                            while ((line = bufferedReader.readLine()) != null) {
+                                sb.append(line);
+                            }
+
+                            fin.close();} catch (Exception e) {
                         }
+                        overalldata = sb.toString();
                         if(task.isSuccessful()){
                             if(task.getResult().getDocuments().size() > 0){
                                 for (QueryDocumentSnapshot document : task.getResult()) {
@@ -335,7 +343,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                             Log.e("read: ", document.getReference().getPath() + "/" + document.getString(id + "-path"));
                                             paths.add(document.getReference().getPath() + "/" + document.getString(id + "-path") + "data:/endauto//endtele//endgame/");
                                             auth = true;
-                                            rewriteToInternal("datapaths.txt", document.getReference().getPath() + "/" + document.getString(id + "-path")+"data:/endauto//endtele//endgame/");
+                                            rewriteToInternal("datapaths.txt", document.getReference().getPath() + "/" + document.getString(id + "-path")+"data:/endauto//endtele//endgame/",mode);
                                         }else {
                                             Log.e("read: ", document.getReference().getPath() + "/" + document.getString(id + "-path"));
                                             paths.add(overalldata.substring(overalldata.indexOf(document.getReference().getPath()+"/"+document.getString(id+"-path")+"data:"),
@@ -343,7 +351,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                                             auth = true;
                                             rewriteToInternal("datapaths.txt", overalldata.substring(overalldata.indexOf(document.getReference().getPath()+"/"+document.getString(id+"-path")+"data:"),
-                                                    overalldata.indexOf(endgame)+endgame.length()));
+                                                    overalldata.indexOf(endgame)+endgame.length()),mode);
                                         }
 
                                     }else {
@@ -354,36 +362,39 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 if(auth){
                                     Intent intent = new Intent(LoginActivity.this,AutonomousActivity.class);
                                     ArrayList<Integer> sorting = new ArrayList<Integer>();
-                                    ArrayList<String> PathToAddbefore=new ArrayList<>();
-                                    ArrayList<String> PathToAddAfter=new ArrayList<String>();
+                                    Map<String,String> toPaths= new HashMap<>();
                                     for (String path:paths) {
                                         Log.e("value before",path);
                                         String qualssubpath = path;
-                                        String quals = "Quals";
-                                        qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
-                                        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-                                        Log.e("trin",qualssubpath);
-                                        PathToAddbefore.add(path.substring(0,path.indexOf(qualssubpath)));
-                                        PathToAddAfter.add(path.substring(path.indexOf(qualssubpath)));
-                                        qualssubpath = qualssubpath.substring(qualssubpath.indexOf("Qual")+quals.length()-1);
-                                        sorting.add(Integer.parseInt(qualssubpath));
-                                        qualssubpath = path;
+                                        String quals = varToLoad;
+                                        if(qualssubpath.indexOf(mode)!=-1){
+                                            qualssubpath = qualssubpath.substring(qualssubpath.indexOf(mode)+mode.length()+1);
+                                            Log.e("WTF",quals+" space "+ path);
+                                            Log.e("why",qualssubpath);
+                                            qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
+                                            Log.e("trin",qualssubpath);
+                                            if(qualssubpath.equals("023")||qualssubpath.equals("ns")){
+                                                String asd ="asds";
+                                                asd.length();
+                                            }
+                                            toPaths.put(qualssubpath,path);
+                                            qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length());
+                                            sorting.add(Integer.parseInt(qualssubpath));
+                                            qualssubpath = path;}
                                     }
                                     Collections.sort(sorting);
                                     for (int i = 0; i < sorting.size(); i++) {
-                                        Log.e("value",PathToAddbefore.get(i)+"Qual"+sorting.get(i)+PathToAddAfter.get(i));
-                                        for (String quick: PathToAddAfter) {
-                                            if (quick.contains("Qual"+sorting.get(i)+"/")){
-                                                Log.e("value",PathToAddbefore.get(i)+quick);
-                                                paths.set(i,PathToAddbefore.get(i)+quick);
-                                            }
-                                        }
-                                    }
-                                    intent.putExtra("paths",paths);
-                                    Log.e("patjo",paths.size()+"");
-                                    intent.putExtra("index",0);
+                                        Log.e("value",toPaths.get(varToLoad+i));
+                                        paths.add(toPaths.get(varToLoad+i));
 
-                                    startActivity(intent);}else  {
+                                    }
+                                    if(last){ intent.putExtra("paths",paths);
+                                        Log.e("patjo",paths.size()+"");
+                                        intent.putExtra("index",0);
+                                        intent.putExtra("mode",mode);
+                                        startActivity(intent);}else  {
+                                }
+                                }else  {
                                 }
                             }else {
 
@@ -401,12 +412,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
     }
-    public void rewriteToInternal(String filename,String content){
+    public void rewriteToInternal(String filename,String content,String mode){
         try {
-            FileOutputStream fOut = openFileOutput("scoutersavedata.txt",Context.MODE_PRIVATE);
+            FileOutputStream fOut = openFileOutput(mode+"scoutersavedata.txt",Context.MODE_PRIVATE);
+            Log.e("WTImode",mode);
             OutputStreamWriter writer =  new OutputStreamWriter(fOut);
-            thingsToResave+= content;
-            fOut.write(thingsToResave.getBytes());
+            thingsTosave.put(mode,thingsTosave.get(mode)+content+"data:/endauto//endtele//endgame/");
+            fOut.write(thingsTosave.get(mode).getBytes());
             fOut.close();
         }catch (Exception e){
             failed = true;

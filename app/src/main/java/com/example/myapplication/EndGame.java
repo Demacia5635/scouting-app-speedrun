@@ -109,8 +109,9 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
         String quals = mode;
         qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
         qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-        String team = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+5);
-        String mode = "Summary";
+        String subteam = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length());
+        String disCode="ARPKY";
+        String team = subteam.substring(0,subteam.indexOf(disCode));        String mode = "Summary";
         match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
         prev = findViewById(R.id.prevtele);
         next = findViewById(R.id.nextauto);
@@ -439,12 +440,14 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
             if(didEND || height>=linearLayout.getHeight()){
                 Intent serviceINtenet = new Intent(this,TryToUploadBackground.class);
                 serviceINtenet.putExtra("path",paths.get(index));
-            startService(serviceINtenet);
+                serviceINtenet.putExtra("mode",mode);
+                startService(serviceINtenet);
             if(!isdone){
                 index++;
             Intent intent = new Intent(this,AutonomousActivity.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
+            intent.putExtra("mode",mode);
             startActivity(intent);}else {
 
             }}else {
@@ -454,6 +457,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
             Intent intent = new Intent(this,TeleopActivity.class);
             intent.putExtra("paths",paths);
             intent.putExtra("index",index);
+            intent.putExtra("mode",mode);
             startActivity(intent);
         }else if(view == gotoquals){
             Intent intent = new Intent(EndGame.this,RecycleAct.class);
