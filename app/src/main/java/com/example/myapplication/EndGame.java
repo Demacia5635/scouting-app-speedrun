@@ -57,16 +57,6 @@ import android.widget.Toast;
 public class EndGame extends AppCompatActivity implements View.OnClickListener, ViewTreeObserver.OnScrollChangedListener {
     LinearLayout linearLayout;
     String varToLoad , mode;
-
-    ArrayList<String> numbernames = new ArrayList<>();
-    ArrayList<String> slidernames = new ArrayList<>();
-    ArrayList<SeekBar> seekBars = new ArrayList<>();
-    ArrayList<String> edittextsnames = new ArrayList<>();
-    ArrayList<String> checkboxesnames = new ArrayList<>();
-    ArrayList<EditText> numberInputs = new ArrayList<>();
-    ArrayList<TextView> sliders = new ArrayList<>();
-    ArrayList<EditText> editTexts = new ArrayList<>();
-    ArrayList<CheckBox> checkBoxes = new ArrayList<>();
     ArrayList<String> paths = new ArrayList<String>();
     int index;
     Button prev,next,gotoquals;
@@ -74,9 +64,8 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
     Boolean didEND;
     Boolean isdone = false;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
-    String databegin = "/endtele/";
-    String dataEnd = "/endgame/";
-    String valueend = "/de";
+
+    LayoutBuilder endGameLayoutBuilder;
 
 
     private FirebaseAuth auth;
@@ -86,7 +75,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_end_game);
         linearLayout = findViewById(R.id.linearlayoutendgame);
-        addViewsToLinearLayout();
+
         Intent intent = getIntent();
         for(String path : intent.getExtras().getStringArrayList("paths")){
             paths.add(path);
@@ -106,13 +95,16 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
         } else if (mode.equals("Playoffs")) {
             varToLoad="Match";
         }
-        String quals = mode;
-        qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length()+1);
-        qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-        String subteam = paths.get(index).substring(paths.get(index).indexOf(qualssubpath)+qualssubpath.length()+1,paths.get(index).indexOf(qualssubpath)+qualssubpath.length());
-        String disCode="ARPKY";
-        String team = subteam.substring(0,subteam.indexOf(disCode));        String mode = "Summary";
-        match.setText(qualssubpath+" team: "+team+ " mode: "+mode);
+        ArrayList<qual> qual = new ArrayList<>();
+        for (String path:paths) {
+            qual q1 = new qual(path,mode);
+            qual.add(q1);
+        }
+        endGameLayoutBuilder = new LayoutBuilder(qual,Constants.teleend,Constants.endGameEnd,linearLayout,this,"summary",index);
+        String quals = qual.get(index).getQualsName();
+        String team = qual.get(index).getTeamNumber();
+        String mode = "Summary";
+        match.setText(quals+" team: "+team+ " mode: "+mode);
         prev = findViewById(R.id.prevtele);
         next = findViewById(R.id.nextauto);
         Log.e("INDEX",index+"");
@@ -128,6 +120,7 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
         scrollView.getViewTreeObserver().addOnScrollChangedListener(this);
 
         auth = FirebaseAuth.getInstance();
+        endGameLayoutBuilder.addViewsToLinearLayout();
     }
 
     @Override
@@ -151,286 +144,14 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
                     }
                 });
     }
-    private void addViewsToLinearLayout(){
-        DocumentReference docRef = db.collection("seasons/2023/data-params").document("summary");
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if(task.isSuccessful()){
-                    DocumentSnapshot document = task.getResult();
-                    if(document.exists()){
-                        Map<String,Object> params = document.getData();
-                        ArrayList<Map<String,Object>> FilteredByWeight = new ArrayList<>();
-                        for(Map.Entry<String, Object> entry : params.entrySet()){
-                            FilteredByWeight.add(((Map<String,Object>) entry.getValue()));
-                        }
-                        for(Map.Entry<String, Object> entry : params.entrySet()){
-                            FilteredByWeight.set(Integer.parseInt(((Map<String, Object>) entry.getValue()).get("weight").toString())-1,((Map<String,Object>) entry.getValue()));
-                        }
-                        for (Map<String,Object> data:FilteredByWeight) {
-                            addviewfrommap((data));
-                        }
-                        getpreviousdata();
 
-                    }
-                }
-            }
-        });
-    }
-    private void addviewfrommap(Map<String, Object> map){
-        switch (map.get("type")+""){
-            case "slider":
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                TextView t1 = new TextView(getApplicationContext());
-                t1.setText(map.get("displayName").toString());
-                t1.setTextColor(Color.parseColor(map.get("color")+""));
-                SeekBar slider = new SeekBar(getApplicationContext());
-                slider.setThumbTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
-                slider.setProgressTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
-                slider.setMin(Integer.parseInt(map.get("min").toString()));
-                slider.setMax(Integer.parseInt(map.get("max").toString()));
-                t1.setPadding(0,100,0,0);
-                slider.setPadding(75,0,75,0);
-                slider.incrementProgressBy(Integer.parseInt(map.get("min").toString()));
-                t1.setLayoutParams(params);
-                LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                slider.setLayoutParams(params2);
-                TextView slidervalue = new TextView(getApplicationContext());
-                slidervalue.setTextColor(Color.parseColor(map.get("color")+""));
-                slidervalue.setLayoutParams(params);
-                SeekBar.OnSeekBarChangeListener abc = new SeekBar.OnSeekBarChangeListener() {
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-                    }
-
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-                    }
-
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        //Executed when progress is changed
-                        slidervalue.setText(progress+"");
-                    }
-                };
-                slider.setOnSeekBarChangeListener(abc);
-                linearLayout.addView(t1);
-                linearLayout.addView(slidervalue);
-                linearLayout.addView(slider);
-                sliders.add(slidervalue);
-                seekBars.add(slider);
-                try {slider.setProgress((Integer.parseInt(map.get("defaultValue").toString())));
-                    slidervalue.setText(map.get("defaultValue")+"");
-                }catch (Exception e){
-                }
-                slidernames.add(map.get("name").toString());
-                if(map.get("name").toString().equals("placed_game_piece")){
-                    Log.e("wtf","wtf");
-                }
-
-
-
-                break;
-            case "text":
-                LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                TextView t2 = new TextView(getApplicationContext());
-                t2.setText(map.get("displayName").toString());
-                t2.setLayoutParams(params3);
-                t2.setTextColor(Color.parseColor(map.get("color")+""));
-                EditText editText = new EditText(getApplicationContext());
-                editText.setHint("enter text");
-                editText.setBackgroundColor(Color.parseColor(map.get("color")+""));
-                editText.setLayoutParams(params3);
-                t2.setPadding(0,100,0,0);
-                linearLayout.addView(t2);
-                linearLayout.addView(editText);
-                try {editText.setText(map.get("defaultValue")+"");
-                }catch (Exception e){
-                }
-                edittextsnames.add(map.get("name").toString());
-
-                editTexts.add(editText);
-                break;
-            case "checkbox":
-                LinearLayout.LayoutParams params4 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                TextView t3 = new TextView(getApplicationContext());
-                t3.setText(map.get("displayName").toString());
-                t3.setLayoutParams(params4);
-                t3.setTextColor(Color.parseColor(map.get("color")+""));
-                CheckBox cb = new CheckBox(getApplicationContext());
-                cb.setButtonTintList(ColorStateList.valueOf(Color.parseColor(map.get("color")+"")));
-                t3.setPadding(0,100,0,0);
-                cb.setLayoutParams(params4);
-                linearLayout.addView(t3);
-                linearLayout.addView(cb);
-                try {
-                    cb.setChecked(map.get("defaultValue").toString() == "1");
-                }catch (Exception e){
-
-                }
-                checkboxesnames.add(map.get("name").toString());
-
-                checkBoxes.add(cb);
-                break;
-            case "number":
-                LinearLayout.LayoutParams params5 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                LinearLayout.LayoutParams params6 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                LinearLayout.LayoutParams params52 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                params52.weight = 5;
-                TextView t4 = new TextView(getApplicationContext());
-                LinearLayout l = new LinearLayout(getApplicationContext());
-                l.setWeightSum(5);
-                l.setLayoutParams(params6);
-                t4.setText(map.get("displayName").toString());
-                t4.setTextColor(Color.parseColor(map.get("color")+""));
-                t4.setLayoutParams(params5);
-                EditText np = new EditText(getApplicationContext());
-                np.setGravity(Gravity.CENTER_HORIZONTAL);
-                np.setLayoutParams(params52);
-                np.setText("1");
-                np.setInputType(InputType.TYPE_CLASS_NUMBER);
-                t4.setPadding(0,100,0,0);
-                l.setPadding(50,0,50,0);
-                Button minus =  new Button(getApplicationContext());
-                minus.setText("-");
-                minus.setLayoutParams(params5);
-                Button plus = new Button(getApplicationContext());
-                plus.setText("+");
-                plus.setTextColor(Color.parseColor(map.get("color")+""));
-                minus.setTextColor(Color.parseColor(map.get("color")+""));
-                np.setTextColor(Color.parseColor(map.get("color")+""));                l.addView(plus);
-                l.addView(np);
-                l.addView(minus);
-                linearLayout.addView(t4);
-                linearLayout.addView(l);
-                numberInputs.add(np);
-                numbernames.add(map.get("name").toString());
-                plus.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(Integer.parseInt(np.getText()+"") < Integer.parseInt(map.get("max").toString())){
-                            int num = Integer.parseInt(np.getText().toString())+1;
-                            Log.e("deez",num+"");
-                            np.setText(""+num);
-                        }
-                    }
-                });
-                plus.setLayoutParams(params5);
-
-                minus.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(Integer.parseInt(np.getText()+"") > 0){
-
-                            np.setText((Integer.parseInt(np.getText()+"")-1)+"");
-                        }
-                    }
-                });
-                np.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                        if(!charSequence.toString().equals("")){
-                            int value = Integer.parseInt(charSequence.toString());
-                            if(value>Integer.parseInt(map.get("max").toString())){
-                                np.setText(map.get("max").toString());
-                            } else if (value<Integer.parseInt(map.get("min").toString())) {
-                                np.setText(map.get("min").toString());
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable editable) {
-                    }
-                });
-
-                break;
-        }
-
-
-    }
-
-
-    private void getpreviousdata(){
-        String datalength = databegin;
-        String colondash = "//://";
-        String data = "/de"+paths.get(index).substring(paths.get(index).indexOf(datalength)+datalength.length(),paths.get(index).indexOf(dataEnd));
-//         data = data.replaceFirst(databegin,data+valueend);
-        Log.e("dodod",data);
-        Log.e("dodosize",data.length()+"");
-
-        if(data.length()>0){
-            Log.e("loop","entered");
-            Log.e("loop numbersize",numbernames.size()+"");
-            for (int i = 0; i < numbernames.size(); i++) {
-                Log.e("number",numbernames.get(i));
-                if(data.contains(numbernames.get(i))){
-                    String temp = data.substring(data.indexOf(valueend+numbernames.get(i)+colondash)+numbernames.get(i).length()+colondash.length()+valueend.length());
-                    Log.e("datavalue",temp);
-                    try {
-                        numberInputs.get(i).setText(Integer.parseInt(temp.substring(0,temp.indexOf("/de")))+"");
-
-                    }catch (Exception e){}
-                }
-            }
-            for (int i = 0; i < checkboxesnames.size(); i++) {
-                if(data.contains(checkboxesnames.get(i))){
-                    String temp = data.substring(data.indexOf(valueend+checkboxesnames.get(i)+colondash)+checkboxesnames.get(i).length()+colondash.length()+valueend.length());
-                    checkBoxes.get(i).setChecked(Boolean.parseBoolean(temp.substring(0,temp.indexOf("/de"))));
-                }
-            }
-            for (int i = 0; i < edittextsnames.size(); i++) {
-                if(data.contains(edittextsnames.get(i))){
-                    String temp = data.substring(data.indexOf(valueend+edittextsnames.get(i)+colondash)+edittextsnames.get(i).length()+colondash.length()+valueend.length());
-                    editTexts.get(i).setText(temp.substring(0,temp.indexOf("/de")));
-                }
-            }
-            for (int i = 0; i < slidernames.size(); i++) {
-                if(data.contains(slidernames.get(i))){
-                    String temp = data.substring(data.indexOf(valueend+slidernames.get(i)+colondash)+slidernames.get(i).length()+colondash.length()+valueend.length());
-                    if(temp.equals("om//://0")){
-                        Log.e("stam",temp);
-                    }
-                    sliders.get(i).setText(temp.substring(0,temp.indexOf("/de")));
-                    try {
-                        seekBars.get(i).setProgress(Integer.parseInt(temp.substring(0,temp.indexOf("/de"))));
-                    }catch (Exception e){}
-                }
-            }
-        }
-    }
 
     @Override
     public void onClick(View view) {
         String datastring="";
 
-        for (int i = 0; i < numbernames.size(); i++) {
-            datastring+=numbernames.get(i)+"//://";
-            datastring+=numberInputs.get(i).getText() + "/de";
-        }
-        for (int i = 0; i < checkboxesnames.size(); i++) {
-            datastring+=checkboxesnames.get(i)+"//://";
-            datastring+=checkBoxes.get(i).isChecked()+ "/de";
-        }
-        for (int i = 0; i < edittextsnames.size(); i++) {
-            datastring+=edittextsnames.get(i)+"//://";
-            datastring+=editTexts.get(i).getText().toString()+ "/de";
-        }
-        for (int i = 0; i < slidernames.size(); i++) {
-            datastring+=slidernames.get(i)+"//://";
-            datastring+=sliders.get(i).getText()+ "/de";
-        }
-        String data = databegin;
-        int dataindex = paths.get(index).indexOf(data)+data.length();
-        String pathwithdata = paths.get(index).substring(0,dataindex)+datastring+paths.get(index).substring(paths.get(index).indexOf(dataEnd));
-        paths.set(index,pathwithdata);
-        writeToInternal("scoutersavedata.txt");
+
+        endGameLayoutBuilder.updateData();
         if(view == next){ DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             int height = displayMetrics.heightPixels;
@@ -439,13 +160,13 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
             Log.e("scrollheight", linearLayout.getHeight()+"");
             if(didEND || height>=linearLayout.getHeight()){
                 Intent serviceINtenet = new Intent(this,TryToUploadBackground.class);
-                serviceINtenet.putExtra("path",paths.get(index));
+                serviceINtenet.putExtra("path",endGameLayoutBuilder.getPaths().get(index));
                 serviceINtenet.putExtra("mode",mode);
                 startService(serviceINtenet);
             if(!isdone){
                 index++;
             Intent intent = new Intent(this,AutonomousActivity.class);
-            intent.putExtra("paths",paths);
+            intent.putExtra("paths",endGameLayoutBuilder.getPaths());
             intent.putExtra("index",index);
             intent.putExtra("mode",mode);
             startActivity(intent);}else {
@@ -455,29 +176,15 @@ public class EndGame extends AppCompatActivity implements View.OnClickListener, 
             }
         } else if (view==prev) {
             Intent intent = new Intent(this,TeleopActivity.class);
-            intent.putExtra("paths",paths);
+            intent.putExtra("paths",endGameLayoutBuilder.getPaths());
             intent.putExtra("index",index);
             intent.putExtra("mode",mode);
             startActivity(intent);
         }else if(view == gotoquals){
             Intent intent = new Intent(EndGame.this,RecycleAct.class);
-            intent.putExtra("paths",paths);
+            intent.putExtra("paths",endGameLayoutBuilder.getPaths());
             intent.putExtra("mode",mode);
             startActivity(intent);
-        }
-
-    }
-    public void writeToInternal(String filename){
-        String thingsTosave = "";
-        for (String thingtoSave : paths ){
-            thingsTosave += thingtoSave;
-        }
-        try {
-            FileOutputStream fOut = openFileOutput(mode+"scoutersavedata.txt", Context.MODE_PRIVATE);
-            fOut.write(thingsTosave.getBytes());
-            fOut.close();
-        }catch (Exception e){
-            Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
         }
 
     }

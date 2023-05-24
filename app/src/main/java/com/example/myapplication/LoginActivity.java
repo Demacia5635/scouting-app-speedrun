@@ -45,6 +45,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     Map<String,String> thingsTosave = new HashMap<>();
     String thingsToResave = "";
+    String prevmode = "";
     ArrayList<String> paths = new ArrayList<String>();
     boolean failed = false;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -63,6 +64,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         thingsTosave.put("Playoffs","");
         String mode = "Quals";
         try {
+            String prevmode = intent2.getExtras().getString("prevmode");
             reloaddata = intent2.getExtras().getBoolean("reloaddata",false);
             Log.e("mode:",mode);
             mode = intent2.getExtras().getString("mode","Quals");
@@ -77,7 +79,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         } else if (mode.equals("Playoffs")) {
             varToLoad="Match";
         }
-        reloadata = findViewById(R.id.ReLoadData);
         Log.e("path",getFilesDir().toString());
         firstname = findViewById(R.id.firstname);
         lastname = findViewById(R.id.lastname);
@@ -132,16 +133,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     qualssubpath = path;}
             }
             Collections.sort(sorting);
+            if(sorting.size()>0){
+                paths.clear();
+            }
             for (int i = 0; i < sorting.size(); i++) {
                 Log.e("value",toPaths.get(varToLoad+sorting.get(i)));
                 paths.add(toPaths.get(varToLoad+sorting.get(i)));
 
             }
-            Log.e("yellow","Strat");
             intent.putExtra("paths",paths);
             intent.putExtra("index",0);
             intent.putExtra("mode",mode);
             startActivity(intent);
+        } else if (!reloaddata && prevmode.length()>0) {
+            Intent intent = new Intent(LoginActivity.this,RecycleAct.class);
+            intent.putExtra("paths",intent2.getExtras().getStringArrayList("paths"));
+            intent.putExtra("mode",prevmode);
+            startActivity(intent);
+
         }
     }
 
@@ -193,20 +202,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         for (int i = 0; i <6; i++) {
 
             writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Playoffs",false);
-            writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Quals",true);
-//            writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Practices",true);
+            writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Quals",false);
+            writefielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Practices",true);
 
-        }} else if (view.equals(reloadata)) {
-            for (int i = 0; i < 6; i++) {
-                reLoadfielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Playoffs",false);
-                reLoadfielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Quals",false);
-                reLoadfielddata(i+"",firstname.getText().toString(),lastname.getText().toString(),"Practices",true);
-            }
-        }
+        }}
     }
     private void writefielddata(String id,String firstname,String lastname,String mode,boolean last){
         Log.e("mode",mode);
-        db.collection("seasons/2023/competitions/ARPKY/"+mode)
+        db.collection("seasons/2023/competitions/ISDE3/"+mode)
                 .whereArrayContains(id,firstname)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -260,19 +263,27 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                         qualssubpath = path;}
                                 }
                                 Collections.sort(sorting);
+                                if(sorting.size()>0){
+                                    paths.clear();
+                                }
                                 for (int i = 0; i < sorting.size(); i++) {
                                     Log.e("value2",varToLoad+sorting.get(i));
                                     Log.e("value",toPaths.get(varToLoad+sorting.get(i)));
-                                    paths.set(i,toPaths.get(varToLoad+sorting.get(i)));
-
+                                    paths.add(toPaths.get(varToLoad+sorting.get(i)));
                                 }
-
-                            if(last){ intent.putExtra("paths",paths);
-                                Log.e("patjo",paths.size()+"");
-                                intent.putExtra("index",0);
-                                intent.putExtra("mode",mode);
-                            startActivity(intent);}}else  {
+                                if(paths.size()>0){
+                                    intent.putExtra("paths",paths);
+                                    Log.e("patjo",paths.size()+"");
+                                    intent.putExtra("index",0);
+                                    intent.putExtra("mode",mode);
+                                }
+                            if(last){
+                            startActivity(intent);
                             }
+                            }else {
+
+                            }
+
                             }else {
                             }
                         }else {
@@ -301,131 +312,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
 
     }
-    private void reLoadfielddata(String id,String firstname,String lastname,String mode,boolean last){
 
-        db.collection("seasons/2023/competitions/ARPKY/"+mode)
-                .whereArrayContains(id,firstname)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        String varToLoad ="";
-                        if(mode.equals("Practices")){
-                            varToLoad = "Practice";
-                        } else if (mode.equals("Quals")) {
-                            varToLoad = "Qual";
-                        } else if (mode.equals("Playoffs")) {
-                            varToLoad="Match";
-                        }
-                        Boolean auth = false;
-                        String overalldata = "";
-                        String endgame = "/endgame/";
-                        StringBuilder sb = new StringBuilder();
-                        try{
-                            FileInputStream fin = openFileInput(mode+"scoutersavedata.txt");
-                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fin,"UTF-8"));
-                            int c;
-                            String line = null;
-                            while ((line = bufferedReader.readLine()) != null) {
-                                sb.append(line);
-                            }
-
-                            fin.close();} catch (Exception e) {
-                        }
-                        overalldata = sb.toString();
-                        if(task.isSuccessful()){
-                            if(task.getResult().getDocuments().size() > 0){
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-
-                                    ArrayList<String> group = (ArrayList<String>) document.get(id);
-                                    if(group.get(2).equals(lastname)){
-                                        if(!overalldata.contains(document.getReference().getPath()+"/"+document.getString(id+"-path")+"data:")) {
-                                            Log.e("read: ", document.getReference().getPath() + "/" + document.getString(id + "-path"));
-                                            paths.add(document.getReference().getPath() + "/" + document.getString(id + "-path") + "data:/endauto//endtele//endgame/");
-                                            auth = true;
-                                            rewriteToInternal("datapaths.txt", document.getReference().getPath() + "/" + document.getString(id + "-path")+"data:/endauto//endtele//endgame/",mode);
-                                        }else {
-                                            Log.e("read: ", document.getReference().getPath() + "/" + document.getString(id + "-path"));
-                                            paths.add(overalldata.substring(overalldata.indexOf(document.getReference().getPath()+"/"+document.getString(id+"-path")+"data:"),
-                                                    overalldata.indexOf(endgame)+endgame.length()));
-
-                                            auth = true;
-                                            rewriteToInternal("datapaths.txt", overalldata.substring(overalldata.indexOf(document.getReference().getPath()+"/"+document.getString(id+"-path")+"data:"),
-                                                    overalldata.indexOf(endgame)+endgame.length()),mode);
-                                        }
-
-                                    }else {
-
-                                    }
-
-                                }
-                                if(auth){
-                                    Intent intent = new Intent(LoginActivity.this,AutonomousActivity.class);
-                                    ArrayList<Integer> sorting = new ArrayList<Integer>();
-                                    Map<String,String> toPaths= new HashMap<>();
-                                    for (String path:paths) {
-                                        Log.e("value before",path);
-                                        String qualssubpath = path;
-                                        String quals = varToLoad;
-                                        if(qualssubpath.indexOf(mode)!=-1){
-                                            qualssubpath = qualssubpath.substring(qualssubpath.indexOf(mode)+mode.length()+1);
-                                            Log.e("WTF",quals+" space "+ path);
-                                            Log.e("why",qualssubpath);
-                                            qualssubpath = qualssubpath.substring(0,qualssubpath.indexOf("/"));
-                                            Log.e("trin",qualssubpath);
-                                            if(qualssubpath.equals("023")||qualssubpath.equals("ns")){
-                                                String asd ="asds";
-                                                asd.length();
-                                            }
-                                            toPaths.put(qualssubpath,path);
-                                            qualssubpath = qualssubpath.substring(qualssubpath.indexOf(quals)+quals.length());
-                                            sorting.add(Integer.parseInt(qualssubpath));
-                                            qualssubpath = path;}
-                                    }
-                                    Collections.sort(sorting);
-                                    for (int i = 0; i < sorting.size(); i++) {
-                                        Log.e("value",toPaths.get(varToLoad+i));
-                                        paths.add(toPaths.get(varToLoad+i));
-
-                                    }
-                                    if(last){ intent.putExtra("paths",paths);
-                                        Log.e("patjo",paths.size()+"");
-                                        intent.putExtra("index",0);
-                                        intent.putExtra("mode",mode);
-                                        startActivity(intent);}else  {
-                                }
-                                }else  {
-                                }
-                            }else {
-
-                            }
-                        }else {
-
-                            Toast.makeText(LoginActivity.this, "no such user exsits", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-        if(!failed){
-
-        }
-
-
-
-    }
-    public void rewriteToInternal(String filename,String content,String mode){
-        try {
-            FileOutputStream fOut = openFileOutput(mode+"scoutersavedata.txt",Context.MODE_PRIVATE);
-            Log.e("WTImode",mode);
-            OutputStreamWriter writer =  new OutputStreamWriter(fOut);
-            thingsTosave.put(mode,thingsTosave.get(mode)+content+"data:/endauto//endtele//endgame/");
-            fOut.write(thingsTosave.get(mode).getBytes());
-            fOut.close();
-        }catch (Exception e){
-            failed = true;
-            Toast.makeText(this, "Internal storage error please contact suprevisor error details: "+e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-
-    }
 
 
 }

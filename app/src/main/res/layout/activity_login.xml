@@ -34,13 +34,7 @@
         android:id="@+id/login"
         android:text="login"
         />
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/teal_700"
-            android:id="@+id/ReLoadData"
-            android:text="reLoadData"
-            />
+
     </LinearLayout>
 
 </LinearLayout>

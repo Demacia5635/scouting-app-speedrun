@@ -32,14 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * An {@link IntentService} subclass for handling asynchronous task requests in
- * a service on a separate handler thread.
- * <p>
- * <p>
- * TODO: Customize class - update intent actions, extra parameters and static
- * helper methods.
- */
+
 public class TryToUploadBackground extends IntentService {
     private NotificationManager notificationManager;
     private NotificationCompat.Builder builder;
@@ -55,14 +48,7 @@ public class TryToUploadBackground extends IntentService {
     private FirebaseAuth auth;
     int tocomplete;
     int completed;
-    // TODO: Rename actions, choose action names that describe tasks that this
-    // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
-    private static final String ACTION_FOO = "com.example.myapplication.action.FOO";
-    private static final String ACTION_BAZ = "com.example.myapplication.action.BAZ";
 
-    // TODO: Rename parameters
-    private static final String EXTRA_PARAM1 = "com.example.myapplication.extra.PARAM1";
-    private static final String EXTRA_PARAM2 = "com.example.myapplication.extra.PARAM2";
 
     public TryToUploadBackground() {
         super("TryToUploadBackground");
@@ -122,35 +108,7 @@ public class TryToUploadBackground extends IntentService {
                 });
     }
 
-    /**
-     * Starts this service to perform action Foo with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionFoo(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, TryToUploadBackground.class);
-        intent.setAction(ACTION_FOO);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
 
-    /**
-     * Starts this service to perform action Baz with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionBaz(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, TryToUploadBackground.class);
-        intent.setAction(ACTION_BAZ);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -183,33 +141,26 @@ public class TryToUploadBackground extends IntentService {
 
                     String data = sb.toString();
                     Log.e("yoooo",data);
-                    data = data.substring(data.indexOf(intent.getExtras().getString("path")),data.length()-1);
-                    String endgame = "/endgame/";
+                    Log.e("gotpath",intent.getExtras().getString("path"));
+                    data = data.substring(data.indexOf(intent.getExtras().getString("path")));
 
-                    data = data.substring(0,data.indexOf(endgame)+endgame.length());
+                    data = data.substring(0,data.indexOf(Constants.endGameEnd)+Constants.endGameEnd.length());
                     Log.e("filtereddata",data);
                     builder.setContentText("uploading files to firebase");
 
                     if(data.length()>0){
-                        int totalcharnum = 0;
-                        int originallength = data.length();
-                        String parsevalue = "";
-                        String parsename = "";
                         String parsepath="";
-                        String autostart = "data:";
-                        String autoend = "/endauto/";
-                        String teleend = "/endtele/";
+
                         while (data.length()>0){
 //                        mNotifyManager.notify(NOTIFICATION_ID,builder.build());
 
-                            parsepath = data.substring(0,data.indexOf(autostart));
+                            parsepath = data.substring(0,data.indexOf(Constants.autostart));
                             Log.e("PATH",parsepath);
-                            addfielstofirebase(parsepath,data.substring(data.indexOf(autostart)+autostart.length(),data.indexOf(autoend)),"autonomous");
-                            Log.e("data given",data.substring(data.indexOf(autostart)+autostart.length(),data.indexOf(autoend)));
-                            addfielstofirebase(parsepath,data.substring(data.indexOf(autoend)+autoend.length(),data.indexOf(teleend)),"teleop");
-                            addfielstofirebase(parsepath,data.substring(data.indexOf(teleend)+teleend.length(),data.indexOf(endgame)),"summary");
-                            data = data.substring(data.indexOf(endgame)+endgame.length());
-                            totalcharnum=originallength - data.length();
+                            addfielstofirebase(parsepath,data.substring(data.indexOf(Constants.autostart)+Constants.autostart.length(),data.indexOf(Constants.autoend)),"autonomous");
+                            Log.e("data given",data.substring(data.indexOf(Constants.autostart)+Constants.autostart.length(),data.indexOf(Constants.autoend)));
+                            addfielstofirebase(parsepath,data.substring(data.indexOf(Constants.autoend)+Constants.autoend.length(),data.indexOf(Constants.teleend)),"teleop");
+                            addfielstofirebase(parsepath,data.substring(data.indexOf(Constants.teleend)+Constants.teleend.length(),data.indexOf(Constants.endGameEnd)),"summary");
+                            data = data.substring(data.indexOf(Constants.endGameEnd)+Constants.endGameEnd.length());
                         }
                         uploadDataToFirestore();
                         didfinish = true;
@@ -252,34 +203,15 @@ public class TryToUploadBackground extends IntentService {
         }
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionFoo(String param1, String param2) {
-        // TODO: Handle action Foo
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    /**
-     * Handle action Baz in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionBaz(String param1, String param2) {
-        // TODO: Handle action Baz
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
     private  void addfielstofirebase(String datapath,String data2,String mode){
         String temp="";
         Map<String, Object> firebasedat = new HashMap<>();
-        String nameseprator = "//://";
-        String valueseprator = "/de";
         String name="";
         String value="";
         Log.e("data",data2);
         while (data2.length()>0){
-            name = data2.substring(0,data2.indexOf(nameseprator));
-            value = data2.substring(data2.indexOf(nameseprator)+nameseprator.length(),data2.indexOf(valueseprator));
+            name = data2.substring(0,data2.indexOf(Constants.nameseprator));
+            value = data2.substring(data2.indexOf(Constants.nameseprator)+Constants.nameseprator.length(),data2.indexOf(Constants.valueseprator));
             Log.e(name,value);
             try{
                 int valueint = Integer.parseInt(value);
@@ -306,7 +238,7 @@ public class TryToUploadBackground extends IntentService {
             }
             ToUploadVar toUploadVar = new ToUploadVar(firebasedat,datapath,mode);
             dataToUpload.add(toUploadVar);
-            data2 = data2.substring(data2.indexOf(valueseprator)+valueseprator.length());
+            data2 = data2.substring(data2.indexOf(Constants.valueseprator)+Constants.valueseprator.length());
         }
 
     }

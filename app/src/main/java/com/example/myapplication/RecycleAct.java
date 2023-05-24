@@ -69,18 +69,30 @@ public class RecycleAct extends AppCompatActivity implements AdapterView.OnItemC
     public void onClick(View view) {
         if(view.equals(changeToPractice)){
             Intent intent = new Intent(RecycleAct.this,LoginActivity.class);
+            intent.putExtra("prevmode",mode);
             intent.putExtra("reloaddata",false);
             intent.putExtra("mode","Practices");
+            intent.putExtra("paths",paths);
+
             startActivity(intent);
         }else if(view.equals(changeToQuals)){
             Intent intent = new Intent(RecycleAct.this,LoginActivity.class);
+            intent.putExtra("prevmode",mode);
+
             intent.putExtra("reloaddata",false);
             intent.putExtra("mode","Quals");
+            intent.putExtra("paths",paths);
+
             startActivity(intent);
         } else if(view.equals(changeToPlayoffs)){
             Intent intent = new Intent(RecycleAct.this,LoginActivity.class);
+            intent.putExtra("prevmode",mode);
+
             intent.putExtra("reloaddata",false);
             intent.putExtra("mode","Playoffs");
+            intent.putExtra("paths",paths);
+
+
             startActivity(intent);
         }
 
